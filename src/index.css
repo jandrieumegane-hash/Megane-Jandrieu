@@ -1,0 +1,43 @@
+@import url('https://fonts.googleapis.com/css2?family=Unbounded:wght@400;700;900&family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&display=swap');
+@import 'tailwindcss';
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+:root {
+  --bg: #f5f2ec;
+  --ink: #0d0d0d;
+  --c1: #ff3366;
+  --c2: #0057ff;
+  --c3: #ffe500;
+  --c4: #00e5a0;
+  --c5: #ff6b00;
+  --c6: #c800ff;
+  --muted: #888;
+  --border: rgba(13,13,13,0.12);
+  --font-display: 'Unbounded', sans-serif;
+  --font-body: 'Plus Jakarta Sans', system-ui, sans-serif;
+}
+
+html {
+  scroll-behavior: smooth;
+  scrollbar-width: none;
+}
+html::-webkit-scrollbar { display: none; }
+
+body {
+  background-color: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-weight: 300;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+::selection {
+  background: var(--c3);
+  color: var(--ink);
+}
