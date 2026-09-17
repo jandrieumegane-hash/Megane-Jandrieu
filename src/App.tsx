@@ -370,6 +370,7 @@ function TapeMarquee() {
 function Nav() {
   const [scrolled, setScrolled] = useState(false)
   const [menuColor, setMenuColor] = useState('#ff3366')
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const colors = ['#ff3366', '#0057ff', '#ff6b00', '#c800ff']
 
   useEffect(() => {
@@ -430,15 +431,17 @@ function Nav() {
         className="clickable mobile-menu-toggle"
         aria-label="Ouvrir le menu"
         aria-controls="mobile-navigation"
-        aria-expanded="false"
+        aria-expanded={mobileMenuOpen}
+        onClick={() => setMobileMenuOpen(open => !open)}
       >
-        <span className="mobile-menu-icon" aria-hidden="true">☰</span>
+        <span className="mobile-menu-icon" aria-hidden="true">{mobileMenuOpen ? '×' : '☰'}</span>
       </button>
 
-      <div style={{ display: 'flex', gap: '2rem', alignItems: 'center' }}>
+      <div className={mobileMenuOpen ? 'mobile-nav-panel is-open' : 'mobile-nav-panel'} style={{ display: 'flex', gap: '2rem', alignItems: 'center' }}>
         {links.map(({ label, href }) => (
           <a
             key={label}
+            onClick={() => setMobileMenuOpen(false)}
             href={href}
             className="clickable link-hover"
             style={{
