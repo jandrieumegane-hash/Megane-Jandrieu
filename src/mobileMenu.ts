@@ -68,24 +68,47 @@ function optimizedMobileImageUrl(source: string) {
 function optimizeGalleryImages(gallery: HTMLElement) {
   gallery.querySelectorAll<HTMLImageElement>('img').forEach((img) => {
     if (img.dataset.mobileOptimized === 'true') return
-    const original = img.currentSrc || img.src
+    const original = img.getAttribute('src') || img.currentSrc || img.src
     if (!original) return
+    const tiny = optimizedMobileImageUrl(original)
+    if (!tiny) return
+
     img.dataset.mobileOriginal = original
     img.dataset.mobileOptimized = 'true'
     img.loading = 'eager'
-    img.decoding = 'async'
+    img.decoding = 'sync'
     img.fetchPriority = 'high'
     img.width = 46
     img.height = 46
-    const tiny = optimizedMobileImageUrl(original)
-    if (!tiny) return
-    img.onerror = () => {
-      if (img.dataset.mobileFallback === 'true') return
-      img.dataset.mobileFallback = 'true'
-      img.src = original
-    }
+
+    // Remove the large React source before assigning the tiny CDN source.
+    // Never fall back to the original on mobile: the original remains the link target.
+    img.removeAttribute('srcset')
+    img.removeAttribute('sizes')
+    img.removeAttribute('src')
     img.src = tiny
   })
+}
+
+function disableHiddenProjectThumbnail(panel: HTMLElement) {
+  const thumbnail = panel.querySelector<HTMLImageElement>(':scope > div:first-child > div:first-child img')
+  if (!thumbnail || panel.classList.contains('has-mobile-gallery')) return
+  if (thumbnail.dataset.mobileThumbnailOptimized === 'true') return
+
+  const original = thumbnail.getAttribute('src') || thumbnail.currentSrc || thumbnail.src
+  if (!original) return
+  thumbnail.dataset.mobileOriginal = original
+  thumbnail.dataset.mobileThumbnailOptimized = 'true'
+  thumbnail.removeAttribute('srcset')
+  thumbnail.removeAttribute('sizes')
+  thumbnail.loading = 'lazy'
+  thumbnail.width = 360
+  thumbnail.height = 270
+
+  const tiny = optimizedMobileImageUrl(original)
+  if (tiny) {
+    thumbnail.src = tiny
+  }
 }
 
 function getGalleryGrid(panel: HTMLElement) {
@@ -99,7 +122,10 @@ function getGalleryGrid(panel: HTMLElement) {
 
 function setupGallery(panel: HTMLElement) {
   const grid = getGalleryGrid(panel)
-  if (!grid) return
+  if (!grid) {
+    disableHiddenProjectThumbnail(panel)
+    return
+  }
   panel.classList.add('has-mobile-gallery')
   grid.classList.add('project-gallery-mobile-row')
   grid.parentElement?.classList.add('project-gallery-auto')
@@ -112,6 +138,14 @@ function syncGalleries() {
 }
 
 function cleanupDesktop() {
+  document.querySelectorAll<HTMLImageElement>('img[data-mobile-original]').forEach((img) => {
+    const original = img.dataset.mobileOriginal
+    if (original && img.src !== original) img.src = original
+    img.removeAttribute('data-mobile-original')
+    img.removeAttribute('data-mobile-optimized')
+    img.removeAttribute('data-mobile-thumbnail-optimized')
+    img.removeAttribute('data-mobile-fallback')
+  })
   document.querySelectorAll<HTMLElement>('.project-gallery-mobile-row').forEach((el) => el.classList.remove('project-gallery-mobile-row'))
   document.querySelectorAll<HTMLElement>('.has-mobile-gallery').forEach((el) => el.classList.remove('has-mobile-gallery'))
   document.querySelectorAll<HTMLElement>('.project-gallery-auto').forEach((el) => el.classList.remove('project-gallery-auto'))
@@ -164,6 +198,10 @@ function boot() {
     const observer = new MutationObserver(() => syncGalleries())
     observer.observe(projets, { childList:true, subtree:true })
   }
+  window.addEventListener('resize', () => {
+    if (window.matchMedia(MOBILE_QUERY).matches) syncGalleries()
+    else cleanupDesktop()
+  })
 }
 
 if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot, { once:true })
