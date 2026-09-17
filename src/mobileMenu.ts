@@ -10,25 +10,35 @@ function setupMobileMenu() {
   const links = Array.from(navLinks.querySelectorAll('a'))
   if (!links.length) return
 
-  const toggle = links[0]
-  toggle.classList.add('mobile-menu-toggle')
   navLinks.classList.add('mobile-nav-links', 'mobile-nav-panel')
+
+  let toggle = nav.querySelector<HTMLButtonElement>('.mobile-menu-toggle')
+  if (!toggle) {
+    toggle = document.createElement('button')
+    toggle.type = 'button'
+    toggle.className = 'clickable mobile-menu-toggle'
+    toggle.setAttribute('aria-controls', 'mobile-navigation')
+    toggle.setAttribute('aria-expanded', 'false')
+    toggle.setAttribute('aria-label', 'Ouvrir le menu')
+    toggle.innerHTML = '<span aria-hidden="true">☰</span>'
+    nav.insertBefore(toggle, navLinks)
+  }
+
+  navLinks.id = 'mobile-navigation'
 
   if (toggle.dataset.mobileMenuReady === 'true') return
   toggle.dataset.mobileMenuReady = 'true'
-  toggle.setAttribute('aria-label', 'Ouvrir le menu')
-  toggle.setAttribute('aria-expanded', 'false')
 
   const closeMenu = () => {
     navLinks.classList.remove('is-open')
-    toggle.setAttribute('aria-expanded', 'false')
-    toggle.setAttribute('aria-label', 'Ouvrir le menu')
+    toggle!.setAttribute('aria-expanded', 'false')
+    toggle!.setAttribute('aria-label', 'Ouvrir le menu')
   }
 
   const openMenu = () => {
     navLinks.classList.add('is-open')
-    toggle.setAttribute('aria-expanded', 'true')
-    toggle.setAttribute('aria-label', 'Fermer le menu')
+    toggle!.setAttribute('aria-expanded', 'true')
+    toggle!.setAttribute('aria-label', 'Fermer le menu')
   }
 
   toggle.addEventListener('click', (event) => {
@@ -37,7 +47,7 @@ function setupMobileMenu() {
     navLinks.classList.contains('is-open') ? closeMenu() : openMenu()
   })
 
-  links.slice(1).forEach((link) => {
+  links.forEach((link) => {
     link.addEventListener('click', () => {
       if (window.matchMedia(MOBILE_QUERY).matches) closeMenu()
     })
