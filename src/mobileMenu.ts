@@ -57,6 +57,46 @@ function addResponsiveStyles() {
       #projets .proj-cat, #projets .proj-year { display:none !important; }
       #apropos > div { grid-template-columns: 1fr !important; gap: 3rem !important; }
       #hero > div { grid-template-columns: 1fr !important; gap: 2rem !important; }
+
+      /* Mobile project details only: hide the duplicate thumbnail. */
+      .proj-expanded > div:first-child {
+        display: block !important;
+      }
+      .proj-expanded > div:first-child > div:first-child {
+        display: none !important;
+      }
+      .proj-expanded > div:first-child > div:last-child {
+        width: 100% !important;
+        min-width: 0 !important;
+      }
+
+      /* Mobile project galleries only: square images in one horizontal row. */
+      .project-gallery-square-item {
+        display: block !important;
+        aspect-ratio: 1 / 1 !important;
+        overflow: hidden !important;
+        flex: 0 0 clamp(180px, 70vw, 300px) !important;
+        width: clamp(180px, 70vw, 300px) !important;
+      }
+      .project-gallery-square-item img {
+        width: 100% !important;
+        height: 100% !important;
+        object-fit: cover !important;
+        display: block !important;
+      }
+      .project-gallery-auto {
+        border-top: 2px solid var(--ink);
+      }
+      .project-gallery-auto-grid {
+        display: flex !important;
+        flex-wrap: nowrap !important;
+        overflow-x: auto !important;
+        overflow-y: hidden !important;
+        gap: 2px !important;
+        padding: 0 2px 2px !important;
+        -webkit-overflow-scrolling: touch !important;
+        scrollbar-width: thin !important;
+      }
     }
 
     @media (max-width: 600px) {
@@ -75,60 +115,12 @@ function addResponsiveStyles() {
       nav .mobile-menu-toggle { display:none !important; }
       nav .mobile-nav-panel { display:none !important; }
     }
-
-    /* Project details: keep the content, remove the duplicated thumbnail. */
-    .proj-expanded > div:first-child {
-      display: block !important;
-    }
-    .proj-expanded > div:first-child > div:first-child {
-      display: none !important;
-    }
-    .proj-expanded > div:first-child > div:last-child {
-      width: 100% !important;
-      min-width: 0 !important;
-    }
-
-    /* Project galleries: square images displayed in a single horizontal sequence. */
-    .project-gallery-square-item {
-      display: block !important;
-      aspect-ratio: 1 / 1 !important;
-      overflow: hidden !important;
-      flex: 0 0 clamp(180px, 24vw, 300px) !important;
-      width: clamp(180px, 24vw, 300px) !important;
-    }
-    .project-gallery-square-item img {
-      width: 100% !important;
-      height: 100% !important;
-      object-fit: cover !important;
-      display: block !important;
-    }
-    .project-gallery-auto {
-      border-top: 2px solid var(--ink);
-    }
-    .project-gallery-auto-grid {
-      display: flex !important;
-      flex-wrap: nowrap !important;
-      overflow-x: auto !important;
-      overflow-y: hidden !important;
-      gap: 2px !important;
-      padding: 0 2px 2px !important;
-      -webkit-overflow-scrolling: touch !important;
-      scrollbar-width: thin !important;
-    }
   `
   document.head.appendChild(style)
 }
 
 function makeSquare(link: HTMLAnchorElement) {
   link.classList.add('project-gallery-square-item')
-  link.style.aspectRatio = '1 / 1'
-  const image = link.querySelector('img')
-  if (image) {
-    image.style.width = '100%'
-    image.style.height = '100%'
-    image.style.objectFit = 'cover'
-    image.style.display = 'block'
-  }
 }
 
 function getProjectThumbnail(panel: HTMLElement): HTMLImageElement | null {
@@ -150,6 +142,7 @@ function getGalleryGrid(panel: HTMLElement): HTMLElement | null {
 function createGallery(panel: HTMLElement, thumbnail: HTMLImageElement): HTMLElement {
   const section = document.createElement('div')
   section.className = 'project-gallery-auto'
+  section.dataset.mobileOnlyGallery = 'true'
 
   const header = document.createElement('div')
   header.style.cssText = 'padding:.75rem 1.25rem;display:flex;align-items:center;gap:.5rem;'
@@ -163,7 +156,20 @@ function createGallery(panel: HTMLElement, thumbnail: HTMLImageElement): HTMLEle
   return section
 }
 
+function cleanupDesktopProjectGalleries() {
+  document.querySelectorAll<HTMLElement>('[data-mobile-only-gallery="true"]').forEach((section) => section.remove())
+  document.querySelectorAll<HTMLAnchorElement>('.project-gallery-square-item').forEach((link) => {
+    link.classList.remove('project-gallery-square-item')
+  })
+  document.querySelectorAll<HTMLAnchorElement>('[data-mobile-added-thumbnail="true"]').forEach((link) => link.remove())
+}
+
 function ensureProjectGalleries() {
+  if (!window.matchMedia(MOBILE_QUERY).matches) {
+    cleanupDesktopProjectGalleries()
+    return
+  }
+
   const panels = document.querySelectorAll<HTMLElement>('#projets .proj-expanded')
 
   panels.forEach((panel) => {
@@ -190,6 +196,7 @@ function ensureProjectGalleries() {
       link.target = '_blank'
       link.rel = 'noopener noreferrer'
       link.className = 'clickable project-gallery-square-item'
+      link.dataset.mobileAddedThumbnail = 'true'
 
       const image = document.createElement('img')
       image.src = thumbnail.src
@@ -198,7 +205,6 @@ function ensureProjectGalleries() {
       link.appendChild(image)
 
       gallery.insertBefore(link, gallery.firstChild)
-      makeSquare(link)
     }
   })
 }
@@ -267,12 +273,14 @@ function setupMobileMenu() {
 
   window.addEventListener('resize', () => {
     if (!window.matchMedia(MOBILE_QUERY).matches) closeMenu()
+    ensureProjectGalleries()
   })
 
   return true
 }
 
 function bootMobileMenu() {
+  addResponsiveStyles()
   const galleryObserver = new MutationObserver(() => ensureProjectGalleries())
   galleryObserver.observe(document.body, { childList: true, subtree: true })
   ensureProjectGalleries()
