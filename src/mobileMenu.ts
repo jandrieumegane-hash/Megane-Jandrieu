@@ -9,8 +9,8 @@ function addResponsiveStyles() {
   style.textContent = `
     @media (max-width: 900px) {
       nav { padding:.7rem 1rem !important; }
-      nav .mobile-menu-toggle { display:inline-flex !important; align-items:center !important; justify-content:center !important; width:2.5rem !important; height:2.5rem !important; margin-left:auto !important; margin-right:.6rem !important; padding:0 !important; border:2px solid var(--ink) !important; background:var(--bg) !important; color:var(--ink) !important; font-size:1.35rem !important; line-height:1 !important; z-index:1001 !important; }
-      nav .mobile-menu-toggle .mobile-menu-icon { display:block !important; line-height:1 !important; }
+      nav .mobile-menu-toggle { display:inline-flex !important; align-items:center !important; justify-content:center !important; flex:0 0 2.5rem !important; width:2.5rem !important; height:2.5rem !important; margin-left:auto !important; margin-right:.6rem !important; padding:0 !important; border:2px solid var(--ink) !important; background:var(--bg) !important; color:var(--ink) !important; font-size:1.35rem !important; line-height:1 !important; z-index:1001 !important; cursor:pointer !important; }
+      nav .mobile-menu-toggle .mobile-menu-icon { display:block !important; line-height:1 !important; pointer-events:none !important; }
       nav .mobile-nav-panel { position:fixed !important; top:4.5rem !important; left:1rem !important; right:1rem !important; width:auto !important; display:none !important; flex-direction:column !important; gap:0 !important; padding:.4rem !important; background:var(--bg) !important; border:2px solid var(--ink) !important; box-shadow:6px 6px 0 var(--ink) !important; z-index:1000 !important; }
       nav .mobile-nav-panel.is-open { display:flex !important; }
       nav .mobile-nav-panel a { display:block !important; width:100% !important; padding:1rem !important; border-bottom:1px solid var(--border) !important; box-sizing:border-box !important; }
@@ -40,7 +40,7 @@ function addResponsiveStyles() {
     @media (max-width:600px) {
       nav { padding:.55rem .7rem !important; }
       nav > .nav-logo { font-size:.68rem !important; }
-      nav .mobile-menu-toggle { width:2.25rem !important; height:2.25rem !important; margin-right:.35rem !important; }
+      nav .mobile-menu-toggle { flex-basis:2.25rem !important; width:2.25rem !important; height:2.25rem !important; margin-right:.35rem !important; }
       nav .mobile-nav-panel { top:3.6rem !important; left:.7rem !important; right:.7rem !important; }
       nav > div:last-child > a { display:none !important; }
       nav > div:last-child > button { min-width:2rem; padding:.3rem .35rem !important; }
@@ -48,7 +48,6 @@ function addResponsiveStyles() {
       #projets .proj-row-header { min-height:6.25rem; padding:1rem !important; }
       #skills > div:last-child { grid-template-columns:1fr !important; }
       #projets > div:first-child h2,#projets > div:first-child h2 + span { font-size:clamp(1.5rem,7.8vw,2rem) !important; }
-      .proj-expanded .project-gallery-mobile-row { height:50px !important; min-height:50px !important; }
     }
     @media (min-width:901px) {
       nav .mobile-menu-toggle { display:none !important; }
@@ -62,11 +61,8 @@ function optimizedMobileImageUrl(source: string) {
   try {
     const url = new URL(source, window.location.href)
     if (url.origin !== window.location.origin) return null
-    const path = url.pathname + url.search
-    return `/.netlify/images?url=${encodeURIComponent(path)}&w=64&h=64&fit=cover&fm=webp&q=45`
-  } catch {
-    return null
-  }
+    return `/.netlify/images?url=${encodeURIComponent(url.pathname + url.search)}&w=64&h=64&fit=cover&fm=webp&q=45`
+  } catch { return null }
 }
 
 function optimizeGalleryImages(gallery: HTMLElement) {
@@ -124,11 +120,14 @@ function cleanupDesktop() {
 function setupMobileMenu() {
   const nav = document.querySelector('nav')
   if (!nav) return false
-  const navLinks = nav.querySelector<HTMLElement>('div:nth-child(2)')
+  const navLinks = Array.from(nav.children).find((child) => {
+    if (!(child instanceof HTMLElement)) return false
+    if (child.classList.contains('mobile-menu-toggle')) return false
+    return child.querySelectorAll('a[href^="#"]').length > 0
+  }) as HTMLElement | undefined
   if (!navLinks) return false
   const links = Array.from(navLinks.querySelectorAll<HTMLAnchorElement>('a[href^="#"]'))
   if (!links.length) return false
-
   navLinks.classList.add('mobile-nav-panel')
   navLinks.id = 'mobile-navigation'
   let toggle = nav.querySelector<HTMLButtonElement>('.mobile-menu-toggle')
@@ -148,9 +147,6 @@ function setupMobileMenu() {
   const openMenu = () => { navLinks.classList.add('is-open'); toggle!.setAttribute('aria-expanded','true'); toggle!.setAttribute('aria-label','Fermer le menu'); const icon = toggle!.querySelector('.mobile-menu-icon'); if (icon) icon.textContent = '×' }
   toggle.addEventListener('click', (event) => { event.preventDefault(); event.stopPropagation(); if (window.matchMedia(MOBILE_QUERY).matches) navLinks.classList.contains('is-open') ? closeMenu() : openMenu() })
   links.forEach((link) => link.addEventListener('click', closeMenu))
-  document.addEventListener('click', (event) => { if (window.matchMedia(MOBILE_QUERY).matches && !nav.contains(event.target as Node)) closeMenu() })
-  document.addEventListener('keydown', (event) => { if (event.key === 'Escape') closeMenu() })
-  window.addEventListener('resize', () => window.matchMedia(MOBILE_QUERY).matches ? syncGalleries() : cleanupDesktop())
   return true
 }
 
