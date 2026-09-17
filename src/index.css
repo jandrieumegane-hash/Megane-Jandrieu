@@ -42,12 +42,12 @@ body {
   img, video { height: auto; }
   h1,h2,h3,h4,p,a,button,span,li { overflow-wrap: anywhere; word-break: normal; }
 
-  /* Header: everything stays inside the viewport and the language switch is always visible. */
+  /* Mobile header: logo + hamburger + language, all inside the viewport. */
   nav {
     width: 100%;
     max-width: 100vw;
     padding: 0.55rem 0.7rem !important;
-    overflow: hidden;
+    overflow: visible !important;
   }
   nav > div { min-width: 0; }
   nav > div:first-child { flex: 1 1 auto; min-width: 0; }
@@ -61,6 +61,74 @@ body {
     overflow: hidden;
     text-overflow: ellipsis;
   }
+
+  /* Turn the existing mobile nav links into a compact hamburger menu. */
+  nav > div:nth-child(2) {
+    position: relative;
+    flex: 0 0 auto !important;
+    width: 2.15rem;
+    height: 2.15rem;
+    display: block !important;
+    margin-left: auto;
+    margin-right: 0.25rem;
+  }
+  nav > div:nth-child(2) > a {
+    display: none !important;
+  }
+  nav > div:nth-child(2) > a:first-child {
+    display: flex !important;
+    width: 2.15rem;
+    height: 2.15rem;
+    align-items: center;
+    justify-content: center;
+    font-size: 0 !important;
+    border: 2px solid var(--ink);
+    background: var(--bg);
+    text-decoration: none;
+    position: relative;
+    z-index: 3;
+  }
+  nav > div:nth-child(2) > a:first-child::before {
+    content: '☰';
+    font-family: Arial, sans-serif;
+    font-size: 1.15rem;
+    line-height: 1;
+    color: var(--ink);
+  }
+  nav > div:nth-child(2):focus-within,
+  nav > div:nth-child(2):hover {
+    width: min(15rem, calc(100vw - 8rem));
+    height: auto;
+    position: absolute;
+    top: 0.45rem;
+    right: 0.7rem;
+    z-index: 110;
+    background: var(--bg);
+    border: 2px solid var(--ink);
+    padding: 0.35rem;
+  }
+  nav > div:nth-child(2):focus-within > a,
+  nav > div:nth-child(2):hover > a {
+    display: flex !important;
+    width: 100%;
+    height: auto;
+    min-height: 2.15rem;
+    padding: 0.55rem 0.7rem;
+    font-size: 0.62rem !important;
+    letter-spacing: 0.08em !important;
+    justify-content: flex-start;
+    border-bottom: 1px solid var(--border);
+  }
+  nav > div:nth-child(2):focus-within > a:first-child,
+  nav > div:nth-child(2):hover > a:first-child {
+    font-size: 0 !important;
+    width: 2.15rem;
+    min-height: 2.15rem;
+    margin-left: auto;
+    justify-content: center;
+    border-bottom: 0;
+  }
+
   nav > div:last-child {
     min-width: 0;
     flex: 0 0 auto;
@@ -152,6 +220,10 @@ body {
 @media (max-width: 380px) {
   nav { padding: 0.5rem 0.55rem !important; }
   nav .nav-logo { max-width: 31vw; font-size: 0.6rem !important; }
+  nav > div:nth-child(2) { width: 2rem; height: 2rem; margin-right: 0.15rem; }
+  nav > div:nth-child(2) > a:first-child { width: 2rem; height: 2rem; }
+  nav > div:nth-child(2):focus-within,
+  nav > div:nth-child(2):hover { right: 0.55rem; width: min(14rem, calc(100vw - 7rem)); }
   nav > div:last-child { gap: 0.12rem !important; }
   nav > div:last-child > button { min-width: 1.85rem; padding: 0.28rem 0.25rem !important; font-size: 0.48rem !important; }
   nav > div:last-child > a { padding: 0.3rem 0.35rem !important; font-size: 0.48rem !important; }
