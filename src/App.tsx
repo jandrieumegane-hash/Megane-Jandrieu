@@ -425,6 +425,16 @@ function Nav() {
         PORT<span style={{ color: menuColor, transition: 'color 0.6s ease' }}>FOLIO</span>
       </a>
 
+      <button
+        type="button"
+        className="clickable mobile-menu-toggle"
+        aria-label="Ouvrir le menu"
+        aria-controls="mobile-navigation"
+        aria-expanded="false"
+      >
+        <span className="mobile-menu-icon" aria-hidden="true">☰</span>
+      </button>
+
       <div style={{ display: 'flex', gap: '2rem', alignItems: 'center' }}>
         {links.map(({ label, href }) => (
           <a
