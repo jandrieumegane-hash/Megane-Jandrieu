@@ -17,53 +17,83 @@ function addResponsiveStyles() {
       nav .mobile-nav-panel a:last-child { border-bottom:0 !important; }
       #hero { padding:5rem 1rem 3rem !important; }
       #projets, #skills, #apropos, #contact { padding-left:1rem !important; padding-right:1rem !important; }
-      #projets .proj-row-header { grid-template-columns:2rem minmax(0,1fr) auto !important; gap:.5rem !important; }
+
+      /* Mobile project heading: never clip the title. */
+      #projets > div:first-child { min-width:0 !important; width:100% !important; }
+      #projets > div:first-child > div:first-child { min-width:0 !important; max-width:100% !important; flex-wrap:wrap !important; gap:.15rem .65rem !important; }
+      #projets > div:first-child h2,
+      #projets > div:first-child h2 + span { font-size:clamp(1.65rem, 8.8vw, 2.35rem) !important; line-height:.95 !important; white-space:normal !important; overflow-wrap:anywhere !important; }
+
+      #projets .proj-row-header { grid-template-columns:2rem minmax(0,1fr) auto !important; gap:.5rem !important; min-width:0 !important; }
+      #projets .proj-row-header > div { min-width:0 !important; }
       #projets .proj-cat, #projets .proj-year { display:none !important; }
       #apropos > div { grid-template-columns:1fr !important; gap:3rem !important; }
       #hero > div { grid-template-columns:1fr !important; gap:2rem !important; }
 
-      /* Only projects that really have a gallery lose the large project thumbnail. */
+      /* Gallery projects: remove only the duplicate large thumbnail on mobile. */
       .proj-expanded.has-mobile-gallery > div:first-child > div:first-child { display:none !important; }
-      .proj-expanded > div:first-child { display:block !important; }
+      .proj-expanded > div:first-child { display:block !important; min-width:0 !important; }
       .proj-expanded > div:first-child > div:last-child { width:100% !important; min-width:0 !important; }
-      .proj-expanded > div:first-child > div:last-child > div:first-child { min-width:0 !important; }
 
-      /* Mobile gallery: fixed 3-column cells reserve their space before images load. */
+      /* Small square gallery: one compact row, horizontally scrollable. */
       .proj-expanded .project-gallery-mobile-row {
-        display:grid !important;
-        grid-template-columns:repeat(3, minmax(0, 1fr)) !important;
-        grid-auto-rows:auto !important;
+        display:flex !important;
+        flex-direction:row !important;
+        flex-wrap:nowrap !important;
+        align-items:flex-start !important;
         gap:4px !important;
         width:100% !important;
         max-width:100% !important;
         min-width:0 !important;
-        overflow:visible !important;
+        overflow-x:auto !important;
+        overflow-y:hidden !important;
         padding:0 2px 5px !important;
         box-sizing:border-box !important;
+        -webkit-overflow-scrolling:touch !important;
+        scrollbar-width:none !important;
         contain:layout paint !important;
       }
+      .proj-expanded .project-gallery-mobile-row::-webkit-scrollbar { display:none !important; }
       .proj-expanded .project-gallery-mobile-row > a {
         display:block !important;
-        width:100% !important;
-        min-width:0 !important;
-        max-width:none !important;
-        height:auto !important;
+        flex:0 0 64px !important;
+        width:64px !important;
+        min-width:64px !important;
+        max-width:64px !important;
+        height:64px !important;
         aspect-ratio:1 / 1 !important;
         margin:0 !important;
         padding:0 !important;
         overflow:hidden !important;
         box-sizing:border-box !important;
+        background:rgba(0,0,0,.04) !important;
       }
       .proj-expanded .project-gallery-mobile-row > a img {
         display:block !important;
-        width:100% !important;
-        height:100% !important;
-        min-width:0 !important;
-        max-width:none !important;
+        width:64px !important;
+        height:64px !important;
+        min-width:64px !important;
+        max-width:64px !important;
+        min-height:64px !important;
+        max-height:64px !important;
         object-fit:cover !important;
       }
-      .project-gallery-auto { border-top:2px solid var(--ink); overflow:visible !important; }
+      .project-gallery-auto { border-top:2px solid var(--ink); overflow:hidden !important; }
       .project-gallery-auto > div:first-child { padding:.45rem .75rem !important; }
+
+      /* Reserve the project image area before the image itself is decoded. */
+      .proj-expanded:not(.has-mobile-gallery) > div:first-child > div:first-child {
+        width:100% !important;
+        min-height:220px !important;
+        aspect-ratio:4 / 3 !important;
+        overflow:hidden !important;
+      }
+      .proj-expanded:not(.has-mobile-gallery) > div:first-child > div:first-child img {
+        width:100% !important;
+        height:100% !important;
+        display:block !important;
+        object-fit:cover !important;
+      }
     }
     @media (max-width:600px) {
       nav { padding:.55rem .7rem !important; }
@@ -75,7 +105,10 @@ function addResponsiveStyles() {
       #hero > div > div:last-child { max-width:180px !important; }
       #projets .proj-row-header { min-height:6.25rem; padding:1rem !important; }
       #skills > div:last-child { grid-template-columns:1fr !important; }
-      .proj-expanded .project-gallery-mobile-row { grid-template-columns:repeat(3, minmax(0, 1fr)) !important; gap:3px !important; }
+      #projets > div:first-child h2,
+      #projets > div:first-child h2 + span { font-size:clamp(1.55rem, 8vw, 2.1rem) !important; }
+      .proj-expanded .project-gallery-mobile-row > a { flex-basis:60px !important; width:60px !important; min-width:60px !important; max-width:60px !important; height:60px !important; }
+      .proj-expanded .project-gallery-mobile-row > a img { width:60px !important; height:60px !important; min-width:60px !important; max-width:60px !important; min-height:60px !important; max-height:60px !important; }
     }
     @media (min-width:901px) {
       nav .mobile-menu-toggle { display:none !important; }
@@ -91,9 +124,7 @@ function getRealGalleryGrid(panel: HTMLElement): HTMLElement | null {
   for (const section of sections) {
     const children = Array.from(section.children).filter((child) => child instanceof HTMLElement) as HTMLElement[]
     for (const child of children) {
-      const imageLinks = Array.from(child.children).filter((node) => {
-        return node instanceof HTMLAnchorElement && !!node.querySelector('img')
-      })
+      const imageLinks = Array.from(child.children).filter((node) => node instanceof HTMLAnchorElement && !!node.querySelector('img'))
       if (imageLinks.length > 0) return child
     }
   }
@@ -110,6 +141,15 @@ function setupGalleryRow(panel: HTMLElement) {
 
   panel.classList.add('has-mobile-gallery')
   galleryGrid.classList.add('project-gallery-mobile-row')
+  galleryGrid.parentElement?.classList.add('project-gallery-auto')
+
+  // Images are already local/static assets in the bundle; decode them asynchronously
+  // and start loading immediately once the project is opened, without layout shift.
+  galleryGrid.querySelectorAll<HTMLImageElement>('img').forEach((img) => {
+    img.loading = 'eager'
+    img.decoding = 'async'
+    img.fetchPriority = 'high'
+  })
 }
 
 function cleanupDesktopMobileGalleryClasses() {
@@ -118,6 +158,9 @@ function cleanupDesktopMobileGalleryClasses() {
   })
   document.querySelectorAll<HTMLElement>('.has-mobile-gallery').forEach((panel) => {
     panel.classList.remove('has-mobile-gallery')
+  })
+  document.querySelectorAll<HTMLElement>('.project-gallery-auto').forEach((section) => {
+    section.classList.remove('project-gallery-auto')
   })
 }
 
