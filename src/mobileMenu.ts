@@ -27,21 +27,73 @@ function addResponsiveStyles() {
     .mobile-menu-toggle[aria-expanded="true"] .mobile-menu-icon { transform: rotate(90deg); }
     .mobile-nav-panel { z-index: 2; }
 
-    /* Project previews stay readable instead of filling the viewport */
-    .proj-expanded > div:first-child > div:first-child {
+    /* Cleaner project cards */
+    #projets > div:last-child { display: grid; gap: 1rem; border-top: 0 !important; }
+    #projets > div:last-child > div {
+      border: 2px solid var(--ink) !important;
+      background: rgba(255,255,255,.28);
+      box-shadow: 4px 4px 0 rgba(13,13,13,.14);
+      transition: box-shadow .2s ease, transform .2s ease;
+    }
+    #projets > div:last-child > div:hover {
+      transform: translate(-2px, -2px);
+      box-shadow: 7px 7px 0 var(--ink);
+    }
+    #projets .proj-row-header {
+      min-height: 7rem;
+      padding: 1.15rem 1.25rem !important;
+      background: #fff;
+      cursor: pointer !important;
+    }
+    #projets .proj-row-header > div { min-width: 0; }
+    #projets .proj-row-header p {
+      display: -webkit-box;
+      -webkit-box-orient: vertical;
+      -webkit-line-clamp: 2;
+      overflow: hidden;
+    }
+    #projets .proj-expanded {
+      margin: 0;
+      border-top-width: 4px !important;
+      box-shadow: inset 0 5px 0 rgba(13,13,13,.06);
+    }
+    #projets .proj-expanded > div:first-child > div:first-child {
       min-width: 0;
       max-height: 320px;
       overflow: hidden;
+      background: #e9e9e9;
     }
-    .proj-expanded > div:first-child > div:first-child img {
+    #projets .proj-expanded > div:first-child > div:first-child img {
       width: 100% !important;
       height: 320px !important;
       min-height: 0 !important;
-      object-fit: cover !important;
+      object-fit: contain !important;
       object-position: center;
     }
-    .proj-expanded video { max-height: 560px; object-fit: contain; background: #111; }
-    .proj-expanded img { max-width: 100%; }
+    #projets .proj-expanded > div:first-child > div:last-child { min-width: 0; }
+    #projets .proj-expanded > div:first-child > div:last-child > div:first-child > div {
+      padding: 1.1rem 1.25rem !important;
+    }
+    #projets .proj-expanded video {
+      width: 100%;
+      max-height: 560px;
+      object-fit: contain;
+      background: #111;
+    }
+    #projets .proj-expanded img { max-width: 100%; }
+    #projets .proj-expanded [style*="repeat(auto-fill"] {
+      padding: 0 1rem 1rem !important;
+      gap: .65rem !important;
+    }
+    #projets .proj-expanded [style*="repeat(auto-fill"] a {
+      background: #e9e9e9;
+      border: 1px solid var(--border);
+      aspect-ratio: 4 / 3;
+    }
+    #projets .proj-expanded [style*="repeat(auto-fill"] img {
+      object-fit: contain !important;
+      background: #e9e9e9;
+    }
 
     @media (max-width: 900px) {
       nav { padding: .7rem 1rem !important; }
@@ -76,6 +128,7 @@ function addResponsiveStyles() {
       #projets, #skills, #apropos { padding: 4rem 1.25rem !important; }
       #projets .proj-row-header { grid-template-columns: 2rem minmax(0, 1fr) auto !important; gap: .75rem !important; }
       #projets .proj-cat, #projets .proj-year { display: none !important; }
+      #projets > div:last-child > div:hover { transform: none; box-shadow: 4px 4px 0 rgba(13,13,13,.14); }
       .proj-expanded > div:first-child { grid-template-columns: 1fr !important; }
       .proj-expanded > div:first-child > div:first-child {
         max-height: 190px !important;
@@ -98,11 +151,14 @@ function addResponsiveStyles() {
       nav .mobile-nav-links { right: .7rem !important; width: calc(100vw - 1.4rem) !important; }
       #hero { padding: 5rem 1rem 3rem !important; }
       #projets, #skills, #apropos, #contact { padding-left: 1rem !important; padding-right: 1rem !important; }
+      #projets > div:last-child { gap: .75rem; }
+      #projets .proj-row-header { min-height: 6.25rem; padding: 1rem !important; }
+      #projets .proj-row-header p { font-size: .72rem !important; }
       .proj-expanded > div:first-child > div:first-child { max-height: 150px !important; }
       .proj-expanded > div:first-child > div:first-child img { height: 150px !important; }
-      .proj-expanded [style*="repeat(auto-fill"] { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; gap: 2px !important; }
+      .proj-expanded [style*="repeat(auto-fill"] { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; gap: .5rem !important; padding: 0 .65rem .65rem !important; }
       .proj-expanded [style*="repeat(auto-fill"] a { aspect-ratio: 1 / 1 !important; }
-      .proj-expanded [style*="repeat(auto-fill"] img { height: 100% !important; object-fit: cover !important; }
+      .proj-expanded [style*="repeat(auto-fill"] img { height: 100% !important; object-fit: contain !important; }
       .proj-expanded video { max-height: 220px; }
     }
   `
