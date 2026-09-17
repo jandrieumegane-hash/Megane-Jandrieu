@@ -810,33 +810,31 @@ function ProjectRow({ project, index }: { project: Project; index: number }) {
             </div>
           )}
 
-          {/* Gallery — pleine largeur, toutes les images */}
+          {/* Gallery — desktop uniquement. Sur mobile, un lien ouvre la galerie complète. */}
           {project.gallery && project.gallery.length > 0 && (
-            <div style={{ borderTop: '2px solid var(--ink)' }}>
-              <div style={{ padding: '0.75rem 1.25rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <span style={{ display: 'inline-block', width: '1.5rem', height: '2px', background: project.color }} />
-                <span style={{ fontFamily: 'var(--font-body)', fontSize: '0.55rem', fontWeight: 800, letterSpacing: '0.15em', textTransform: 'uppercase', color: project.color }}>{t('gallery_label')}</span>
-              </div>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: '2px', padding: '0 2px 2px' }}>
-                {project.gallery.map((imgUrl, i) => {
-                  const mobileSrc = imgUrl.startsWith('/') && !imgUrl.startsWith('//')
-                    ? `/.netlify/images?url=${encodeURIComponent(imgUrl)}&w=72&h=72&fit=cover&fm=webp&q=45`
-                    : undefined
-                  return (
+            <>
+              <div className="project-gallery-desktop-only" style={{ borderTop: '2px solid var(--ink)' }}>
+                <div style={{ padding: '0.75rem 1.25rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <span style={{ display: 'inline-block', width: '1.5rem', height: '2px', background: project.color }} />
+                  <span style={{ fontFamily: 'var(--font-body)', fontSize: '0.55rem', fontWeight: 800, letterSpacing: '0.15em', textTransform: 'uppercase', color: project.color }}>{t('gallery_label')}</span>
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: '2px', padding: '0 2px 2px' }}>
+                  {project.gallery.map((imgUrl, i) => (
                     <a key={i} href={imgUrl} target="_blank" rel="noopener noreferrer" className="clickable" style={{ display: 'block', aspectRatio: '4/3', overflow: 'hidden' }}>
-                      {mobileSrc ? (
-                        <picture>
-                          <source media="(max-width: 900px)" srcSet={mobileSrc} />
-                          <img src={imgUrl} alt={`${project.title} ${i + 1}`} style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.3s' }} className="tag-hover" loading="eager" decoding="async" fetchPriority="high" />
-                        </picture>
-                      ) : (
-                        <img src={imgUrl} alt={`${project.title} ${i + 1}`} style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.3s' }} className="tag-hover" />
-                      )}
+                      <img src={imgUrl} alt={`${project.title} ${i + 1}`} style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.3s' }} className="tag-hover" />
                     </a>
-                  )
-                })}
+                  ))}
+                </div>
               </div>
-            </div>
+              <a
+                href={project.gallery[0]}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="project-gallery-mobile-link clickable"
+              >
+                <span>{lang === 'fr' ? 'Voir les images →' : 'Vedi le immagini →'}</span>
+              </a>
+            </>
           )}
 
         </div>
