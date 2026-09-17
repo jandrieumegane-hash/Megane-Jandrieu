@@ -25,11 +25,45 @@ function addResponsiveStyles() {
       .proj-expanded > div:first-child > div:first-child { display:none !important; }
       .proj-expanded > div:first-child > div:last-child { width:100% !important; min-width:0 !important; }
 
-      /* Mobile gallery: one compact horizontal row, never a vertical stack. */
-      .project-gallery-auto-grid { display:flex !important; flex-direction:row !important; flex-wrap:nowrap !important; align-items:flex-start !important; width:100% !important; max-width:100% !important; overflow-x:auto !important; overflow-y:hidden !important; gap:4px !important; padding:0 2px 4px !important; box-sizing:border-box !important; -webkit-overflow-scrolling:touch !important; scrollbar-width:thin !important; }
-      .project-gallery-auto-grid > * { flex:0 0 82px !important; width:82px !important; min-width:82px !important; max-width:82px !important; }
-      .project-gallery-square-item { display:block !important; flex:0 0 82px !important; width:82px !important; min-width:82px !important; max-width:82px !important; height:82px !important; aspect-ratio:1 / 1 !important; overflow:hidden !important; }
-      .project-gallery-square-item img { width:100% !important; height:100% !important; object-fit:cover !important; display:block !important; }
+      /* Mobile only: every real gallery is a single horizontal row. */
+      .proj-expanded > div:last-child:not(:first-child) { min-width:0 !important; }
+      .proj-expanded .project-gallery-mobile-row {
+        display:flex !important;
+        flex-direction:row !important;
+        flex-wrap:nowrap !important;
+        align-items:flex-start !important;
+        gap:4px !important;
+        width:100% !important;
+        max-width:100% !important;
+        min-width:0 !important;
+        overflow-x:auto !important;
+        overflow-y:hidden !important;
+        padding:0 2px 5px !important;
+        box-sizing:border-box !important;
+        -webkit-overflow-scrolling:touch !important;
+        scrollbar-width:thin !important;
+      }
+      .proj-expanded .project-gallery-mobile-row > a,
+      .proj-expanded .project-gallery-mobile-row > div {
+        display:block !important;
+        flex:0 0 72px !important;
+        width:72px !important;
+        min-width:72px !important;
+        max-width:72px !important;
+        height:72px !important;
+        margin:0 !important;
+        padding:0 !important;
+        aspect-ratio:1 / 1 !important;
+        overflow:hidden !important;
+      }
+      .proj-expanded .project-gallery-mobile-row > a img,
+      .proj-expanded .project-gallery-mobile-row > div img {
+        display:block !important;
+        width:100% !important;
+        height:100% !important;
+        min-width:0 !important;
+        object-fit:cover !important;
+      }
       .project-gallery-auto { border-top:2px solid var(--ink); overflow:hidden !important; }
       .project-gallery-auto > div:first-child { padding:.45rem .75rem !important; }
     }
@@ -43,8 +77,8 @@ function addResponsiveStyles() {
       #hero > div > div:last-child { max-width:180px !important; }
       #projets .proj-row-header { min-height:6.25rem; padding:1rem !important; }
       #skills > div:last-child { grid-template-columns:1fr !important; }
-      .project-gallery-auto-grid > * { flex-basis:72px !important; width:72px !important; min-width:72px !important; max-width:72px !important; }
-      .project-gallery-square-item { flex-basis:72px !important; width:72px !important; min-width:72px !important; max-width:72px !important; height:72px !important; }
+      .proj-expanded .project-gallery-mobile-row > a,
+      .proj-expanded .project-gallery-mobile-row > div { flex-basis:64px !important; width:64px !important; min-width:64px !important; max-width:64px !important; height:64px !important; }
     }
     @media (min-width:901px) {
       nav .mobile-menu-toggle { display:none !important; }
@@ -54,8 +88,6 @@ function addResponsiveStyles() {
   document.head.appendChild(style)
 }
 
-function makeSquare(link: HTMLAnchorElement) { link.classList.add('project-gallery-square-item') }
-
 function getProjectThumbnail(panel: HTMLElement): HTMLImageElement | null {
   const top = panel.firstElementChild
   if (!(top instanceof HTMLElement)) return null
@@ -64,62 +96,40 @@ function getProjectThumbnail(panel: HTMLElement): HTMLImageElement | null {
   return topLeft.querySelector('img')
 }
 
-function getGalleryGrid(panel: HTMLElement): HTMLElement | null {
-  const candidates = Array.from(panel.children).filter((child) => child instanceof HTMLElement && child.querySelectorAll('img').length > 1) as HTMLElement[]
+function getRealGallery(panel: HTMLElement): HTMLElement | null {
+  const candidates = Array.from(panel.children).filter((child) => {
+    if (!(child instanceof HTMLElement)) return false
+    if (child.dataset.mobileOnlyGallery === 'true') return false
+    return child.querySelectorAll('img').length > 0
+  }) as HTMLElement[]
   return candidates.length ? candidates[candidates.length - 1] : null
 }
 
-function createGallery(panel: HTMLElement, thumbnail: HTMLImageElement): HTMLElement {
-  const section = document.createElement('div')
-  section.className = 'project-gallery-auto'
-  section.dataset.mobileOnlyGallery = 'true'
-  const header = document.createElement('div')
-  header.style.cssText = 'padding:.75rem 1.25rem;display:flex;align-items:center;gap:.5rem;'
-  header.innerHTML = '<span style="display:inline-block;width:1.5rem;height:2px;background:var(--ink)"></span><span style="font-family:var(--font-body);font-size:.55rem;font-weight:800;letter-spacing:.15em;text-transform:uppercase;color:var(--ink)">Galerie du projet</span>'
-  const grid = document.createElement('div')
-  grid.className = 'project-gallery-auto-grid'
-  section.append(header, grid)
-  panel.appendChild(section)
-  return section
+function setupGalleryRow(panel: HTMLElement) {
+  const gallery = getRealGallery(panel)
+  if (!gallery) return
+
+  gallery.classList.add('project-gallery-mobile-row')
+  gallery.querySelectorAll<HTMLAnchorElement>('a').forEach((link) => {
+    link.style.aspectRatio = '1 / 1'
+  })
 }
 
-function cleanupDesktopProjectGalleries() {
+function cleanupDesktopMobileGalleryClasses() {
+  document.querySelectorAll<HTMLElement>('.project-gallery-mobile-row').forEach((gallery) => {
+    gallery.classList.remove('project-gallery-mobile-row')
+  })
   document.querySelectorAll<HTMLElement>('[data-mobile-only-gallery="true"]').forEach((section) => section.remove())
-  document.querySelectorAll<HTMLAnchorElement>('.project-gallery-square-item').forEach((link) => link.classList.remove('project-gallery-square-item'))
   document.querySelectorAll<HTMLAnchorElement>('[data-mobile-added-thumbnail="true"]').forEach((link) => link.remove())
 }
 
 function ensureProjectGalleries() {
   if (!window.matchMedia(MOBILE_QUERY).matches) {
-    cleanupDesktopProjectGalleries()
+    cleanupDesktopMobileGalleryClasses()
     return
   }
-  const panels = document.querySelectorAll<HTMLElement>('#projets .proj-expanded')
-  panels.forEach((panel) => {
-    const thumbnail = getProjectThumbnail(panel)
-    if (!thumbnail?.src) return
-    let gallery = getGalleryGrid(panel)
-    if (!gallery) gallery = createGallery(panel, thumbnail).querySelector('.project-gallery-auto-grid') as HTMLElement
-    if (!gallery) return
-    gallery.classList.add('project-gallery-auto-grid')
-    const existingLinks = Array.from(gallery.querySelectorAll<HTMLAnchorElement>('a'))
-    existingLinks.forEach(makeSquare)
-    const alreadyContainsThumbnail = existingLinks.some((link) => link.querySelector('img')?.src === thumbnail.src)
-    if (!alreadyContainsThumbnail) {
-      const link = document.createElement('a')
-      link.href = thumbnail.src
-      link.target = '_blank'
-      link.rel = 'noopener noreferrer'
-      link.className = 'clickable project-gallery-square-item'
-      link.dataset.mobileAddedThumbnail = 'true'
-      const image = document.createElement('img')
-      image.src = thumbnail.src
-      image.alt = thumbnail.alt || 'Projet'
-      image.className = 'tag-hover'
-      link.appendChild(image)
-      gallery.insertBefore(link, gallery.firstChild)
-    }
-  })
+
+  document.querySelectorAll<HTMLElement>('#projets .proj-expanded').forEach(setupGalleryRow)
 }
 
 function setupMobileMenu() {
@@ -151,7 +161,7 @@ function setupMobileMenu() {
   links.forEach((link) => link.addEventListener('click', closeMenu))
   document.addEventListener('click', (event) => { if (window.matchMedia(MOBILE_QUERY).matches && !nav.contains(event.target as Node)) closeMenu() })
   document.addEventListener('keydown', (event) => { if (event.key === 'Escape') closeMenu() })
-  window.addEventListener('resize', () => { if (!window.matchMedia(MOBILE_QUERY).matches) closeMenu(); scheduleGallerySync() })
+  window.addEventListener('resize', () => { if (!window.matchMedia(MOBILE_QUERY).matches) { closeMenu(); cleanupDesktopMobileGalleryClasses() } else ensureProjectGalleries() })
   return true
 }
 
@@ -159,16 +169,22 @@ let gallerySyncScheduled = false
 function scheduleGallerySync() {
   if (gallerySyncScheduled) return
   gallerySyncScheduled = true
-  window.requestAnimationFrame(() => { gallerySyncScheduled = false; ensureProjectGalleries() })
+  window.requestAnimationFrame(() => {
+    gallerySyncScheduled = false
+    ensureProjectGalleries()
+  })
 }
 
 function bootMobileMenu() {
   addResponsiveStyles()
   ensureProjectGalleries()
-  const galleryObserver = new MutationObserver(() => scheduleGallerySync())
-  galleryObserver.observe(document.body, { childList:true, subtree:true })
   if (setupMobileMenu()) return
-  const observer = new MutationObserver(() => { if (setupMobileMenu()) observer.disconnect() })
+  const observer = new MutationObserver(() => {
+    if (setupMobileMenu()) {
+      observer.disconnect()
+      scheduleGallerySync()
+    }
+  })
   observer.observe(document.body, { childList:true, subtree:true })
 }
 
