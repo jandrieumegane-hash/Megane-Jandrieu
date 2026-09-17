@@ -147,14 +147,15 @@ function cleanupDesktop() {
 function setupMobileMenu() {
   const nav = document.querySelector('nav')
   if (!nav) return false
-  const navLinks = Array.from(nav.children).find((child) => {
-    if (!(child instanceof HTMLElement)) return false
-    if (child.classList.contains('nav-logo') || child.classList.contains('mobile-menu-toggle')) return false
-    return child.querySelectorAll('a[href^="#"]').length > 0
-  }) as HTMLElement | undefined
-  if (!navLinks) return false
+
+  // The navigation links are the second direct child of the real nav.
+  // Keep this explicit: the first child is the portfolio/logo block.
+  const navLinks = nav.children[1]
+  if (!(navLinks instanceof HTMLElement)) return false
+
   const links = Array.from(navLinks.querySelectorAll<HTMLAnchorElement>('a[href^="#"]'))
   if (!links.length) return false
+
   navLinks.classList.add('mobile-nav-panel')
   navLinks.id = 'mobile-navigation'
   let toggle = nav.querySelector<HTMLButtonElement>('.mobile-menu-toggle')
@@ -168,11 +169,32 @@ function setupMobileMenu() {
     toggle.innerHTML = '<span class="mobile-menu-icon" aria-hidden="true">☰</span>'
     nav.insertBefore(toggle, navLinks)
   }
+
   if (toggle.dataset.mobileMenuReady === 'true') return true
   toggle.dataset.mobileMenuReady = 'true'
-  const closeMenu = () => { navLinks!.classList.remove('is-open'); toggle!.setAttribute('aria-expanded','false'); toggle!.setAttribute('aria-label','Ouvrir le menu'); const icon = toggle!.querySelector('.mobile-menu-icon'); if (icon) icon.textContent = '☰' }
-  const openMenu = () => { navLinks!.classList.add('is-open'); toggle!.setAttribute('aria-expanded','true'); toggle!.setAttribute('aria-label','Fermer le menu'); const icon = toggle!.querySelector('.mobile-menu-icon'); if (icon) icon.textContent = '×' }
-  toggle.addEventListener('click', (event) => { event.preventDefault(); event.stopPropagation(); if (window.matchMedia(MOBILE_QUERY).matches) navLinks!.classList.contains('is-open') ? closeMenu() : openMenu() })
+
+  const closeMenu = () => {
+    navLinks.classList.remove('is-open')
+    toggle!.setAttribute('aria-expanded','false')
+    toggle!.setAttribute('aria-label','Ouvrir le menu')
+    const icon = toggle!.querySelector('.mobile-menu-icon')
+    if (icon) icon.textContent = '☰'
+  }
+  const openMenu = () => {
+    navLinks.classList.add('is-open')
+    toggle!.setAttribute('aria-expanded','true')
+    toggle!.setAttribute('aria-label','Fermer le menu')
+    const icon = toggle!.querySelector('.mobile-menu-icon')
+    if (icon) icon.textContent = '×'
+  }
+
+  toggle.addEventListener('click', (event) => {
+    event.preventDefault()
+    event.stopPropagation()
+    if (window.matchMedia(MOBILE_QUERY).matches) {
+      navLinks.classList.contains('is-open') ? closeMenu() : openMenu()
+    }
+  })
   links.forEach((link) => link.addEventListener('click', closeMenu))
   return true
 }
