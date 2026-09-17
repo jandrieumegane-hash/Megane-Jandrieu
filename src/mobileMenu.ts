@@ -21,17 +21,18 @@ function addResponsiveStyles() {
       #projets .proj-cat, #projets .proj-year { display:none !important; }
       #apropos > div { grid-template-columns:1fr !important; gap:3rem !important; }
       #hero > div { grid-template-columns:1fr !important; gap:2rem !important; }
+
+      /* Only projects that really have a gallery lose the large project thumbnail. */
+      .proj-expanded.has-mobile-gallery > div:first-child > div:first-child { display:none !important; }
       .proj-expanded > div:first-child { display:block !important; }
-      .proj-expanded > div:first-child > div:first-child { display:none !important; }
       .proj-expanded > div:first-child > div:last-child { width:100% !important; min-width:0 !important; }
 
-      /* Mobile only: every real gallery is a single horizontal row. */
-      .proj-expanded > div:last-child:not(:first-child) { min-width:0 !important; }
+      /* The gallery GRID itself is a single horizontal strip. */
       .proj-expanded .project-gallery-mobile-row {
         display:flex !important;
         flex-direction:row !important;
         flex-wrap:nowrap !important;
-        align-items:flex-start !important;
+        align-items:stretch !important;
         gap:4px !important;
         width:100% !important;
         max-width:100% !important;
@@ -43,25 +44,24 @@ function addResponsiveStyles() {
         -webkit-overflow-scrolling:touch !important;
         scrollbar-width:thin !important;
       }
-      .proj-expanded .project-gallery-mobile-row > a,
-      .proj-expanded .project-gallery-mobile-row > div {
+      .proj-expanded .project-gallery-mobile-row > a {
         display:block !important;
-        flex:0 0 72px !important;
-        width:72px !important;
-        min-width:72px !important;
-        max-width:72px !important;
-        height:72px !important;
+        flex:0 0 76px !important;
+        width:76px !important;
+        min-width:76px !important;
+        max-width:76px !important;
+        height:76px !important;
         margin:0 !important;
         padding:0 !important;
         aspect-ratio:1 / 1 !important;
         overflow:hidden !important;
       }
-      .proj-expanded .project-gallery-mobile-row > a img,
-      .proj-expanded .project-gallery-mobile-row > div img {
+      .proj-expanded .project-gallery-mobile-row > a img {
         display:block !important;
         width:100% !important;
         height:100% !important;
         min-width:0 !important;
+        max-width:none !important;
         object-fit:cover !important;
       }
       .project-gallery-auto { border-top:2px solid var(--ink); overflow:hidden !important; }
@@ -77,8 +77,7 @@ function addResponsiveStyles() {
       #hero > div > div:last-child { max-width:180px !important; }
       #projets .proj-row-header { min-height:6.25rem; padding:1rem !important; }
       #skills > div:last-child { grid-template-columns:1fr !important; }
-      .proj-expanded .project-gallery-mobile-row > a,
-      .proj-expanded .project-gallery-mobile-row > div { flex-basis:64px !important; width:64px !important; min-width:64px !important; max-width:64px !important; height:64px !important; }
+      .proj-expanded .project-gallery-mobile-row > a { flex-basis:68px !important; width:68px !important; min-width:68px !important; max-width:68px !important; height:68px !important; }
     }
     @media (min-width:901px) {
       nav .mobile-menu-toggle { display:none !important; }
@@ -88,39 +87,40 @@ function addResponsiveStyles() {
   document.head.appendChild(style)
 }
 
-function getProjectThumbnail(panel: HTMLElement): HTMLImageElement | null {
-  const top = panel.firstElementChild
-  if (!(top instanceof HTMLElement)) return null
-  const topLeft = top.firstElementChild
-  if (!(topLeft instanceof HTMLElement)) return null
-  return topLeft.querySelector('img')
-}
+function getRealGalleryGrid(panel: HTMLElement): HTMLElement | null {
+  const sections = Array.from(panel.children).filter((child) => child instanceof HTMLElement) as HTMLElement[]
 
-function getRealGallery(panel: HTMLElement): HTMLElement | null {
-  const candidates = Array.from(panel.children).filter((child) => {
-    if (!(child instanceof HTMLElement)) return false
-    if (child.dataset.mobileOnlyGallery === 'true') return false
-    return child.querySelectorAll('img').length > 0
-  }) as HTMLElement[]
-  return candidates.length ? candidates[candidates.length - 1] : null
+  for (const section of sections) {
+    const children = Array.from(section.children).filter((child) => child instanceof HTMLElement) as HTMLElement[]
+    for (const child of children) {
+      const imageLinks = Array.from(child.children).filter((node) => {
+        return node instanceof HTMLAnchorElement && !!node.querySelector('img')
+      })
+      if (imageLinks.length > 0) return child
+    }
+  }
+
+  return null
 }
 
 function setupGalleryRow(panel: HTMLElement) {
-  const gallery = getRealGallery(panel)
-  if (!gallery) return
+  const galleryGrid = getRealGalleryGrid(panel)
+  if (!galleryGrid) {
+    panel.classList.remove('has-mobile-gallery')
+    return
+  }
 
-  gallery.classList.add('project-gallery-mobile-row')
-  gallery.querySelectorAll<HTMLAnchorElement>('a').forEach((link) => {
-    link.style.aspectRatio = '1 / 1'
-  })
+  panel.classList.add('has-mobile-gallery')
+  galleryGrid.classList.add('project-gallery-mobile-row')
 }
 
 function cleanupDesktopMobileGalleryClasses() {
   document.querySelectorAll<HTMLElement>('.project-gallery-mobile-row').forEach((gallery) => {
     gallery.classList.remove('project-gallery-mobile-row')
   })
-  document.querySelectorAll<HTMLElement>('[data-mobile-only-gallery="true"]').forEach((section) => section.remove())
-  document.querySelectorAll<HTMLAnchorElement>('[data-mobile-added-thumbnail="true"]').forEach((link) => link.remove())
+  document.querySelectorAll<HTMLElement>('.has-mobile-gallery').forEach((panel) => {
+    panel.classList.remove('has-mobile-gallery')
+  })
 }
 
 function ensureProjectGalleries() {
@@ -155,13 +155,39 @@ function setupMobileMenu() {
   }
   if (toggle.dataset.mobileMenuReady === 'true') return true
   toggle.dataset.mobileMenuReady = 'true'
-  const closeMenu = () => { navLinks.classList.remove('is-open'); toggle!.setAttribute('aria-expanded','false'); toggle!.setAttribute('aria-label','Ouvrir le menu'); const icon=toggle!.querySelector('.mobile-menu-icon'); if(icon) icon.textContent='☰' }
-  const openMenu = () => { navLinks.classList.add('is-open'); toggle!.setAttribute('aria-expanded','true'); toggle!.setAttribute('aria-label','Fermer le menu'); const icon=toggle!.querySelector('.mobile-menu-icon'); if(icon) icon.textContent='×' }
-  toggle.addEventListener('click', (event) => { event.preventDefault(); event.stopPropagation(); if (!window.matchMedia(MOBILE_QUERY).matches) return; navLinks.classList.contains('is-open') ? closeMenu() : openMenu() })
+  const closeMenu = () => {
+    navLinks.classList.remove('is-open')
+    toggle!.setAttribute('aria-expanded','false')
+    toggle!.setAttribute('aria-label','Ouvrir le menu')
+    const icon=toggle!.querySelector('.mobile-menu-icon')
+    if(icon) icon.textContent='☰'
+  }
+  const openMenu = () => {
+    navLinks.classList.add('is-open')
+    toggle!.setAttribute('aria-expanded','true')
+    toggle!.setAttribute('aria-label','Fermer le menu')
+    const icon=toggle!.querySelector('.mobile-menu-icon')
+    if(icon) icon.textContent='×'
+  }
+  toggle.addEventListener('click', (event) => {
+    event.preventDefault()
+    event.stopPropagation()
+    if (!window.matchMedia(MOBILE_QUERY).matches) return
+    navLinks.classList.contains('is-open') ? closeMenu() : openMenu()
+  })
   links.forEach((link) => link.addEventListener('click', closeMenu))
-  document.addEventListener('click', (event) => { if (window.matchMedia(MOBILE_QUERY).matches && !nav.contains(event.target as Node)) closeMenu() })
+  document.addEventListener('click', (event) => {
+    if (window.matchMedia(MOBILE_QUERY).matches && !nav.contains(event.target as Node)) closeMenu()
+  })
   document.addEventListener('keydown', (event) => { if (event.key === 'Escape') closeMenu() })
-  window.addEventListener('resize', () => { if (!window.matchMedia(MOBILE_QUERY).matches) { closeMenu(); cleanupDesktopMobileGalleryClasses() } else ensureProjectGalleries() })
+  window.addEventListener('resize', () => {
+    if (!window.matchMedia(MOBILE_QUERY).matches) {
+      closeMenu()
+      cleanupDesktopMobileGalleryClasses()
+    } else {
+      ensureProjectGalleries()
+    }
+  })
   return true
 }
 
