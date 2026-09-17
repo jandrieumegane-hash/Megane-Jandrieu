@@ -35,8 +35,8 @@ function addResponsiveStyles() {
         display:flex !important; align-items:center !important; justify-content:center !important;
         margin:0 !important; padding:.8rem 1rem !important; border-top:2px solid var(--ink) !important;
         font-family:var(--font-display) !important; font-size:.72rem !important; font-weight:800 !important;
-        letter-spacing:.02em !important; text-transform:uppercase !important; color:var(--ink) !important;
-        text-decoration:none !important; background:var(--bg) !important;
+        letter-spacing:.02em !important; text-transform:uppercase !important;
+        text-decoration:none !important;
       }
 
       #hero { padding:5rem 1rem 3rem !important; }
@@ -79,50 +79,8 @@ function setupMobileMenu() {
   if (!nav) return false
   const navLinks = nav.children[1]
   if (!(navLinks instanceof HTMLElement)) return false
-  const links = Array.from(navLinks.querySelectorAll<HTMLAnchorElement>('a[href^="#"]'))
-  if (!links.length) return false
-
   navLinks.classList.add('mobile-nav-panel')
   navLinks.id = 'mobile-navigation'
-
-  let toggle = nav.querySelector<HTMLButtonElement>('.mobile-menu-toggle')
-  if (!toggle) {
-    toggle = document.createElement('button')
-    toggle.type = 'button'
-    toggle.className = 'clickable mobile-menu-toggle'
-    toggle.setAttribute('aria-controls', navLinks.id)
-    toggle.setAttribute('aria-expanded', 'false')
-    toggle.setAttribute('aria-label', 'Ouvrir le menu')
-    toggle.innerHTML = '<span class="mobile-menu-icon" aria-hidden="true">☰</span>'
-    nav.insertBefore(toggle, navLinks)
-  }
-
-  if (toggle.dataset.mobileMenuReady === 'true') return true
-  toggle.dataset.mobileMenuReady = 'true'
-
-  const closeMenu = () => {
-    navLinks.classList.remove('is-open')
-    toggle!.setAttribute('aria-expanded', 'false')
-    toggle!.setAttribute('aria-label', 'Ouvrir le menu')
-    const icon = toggle!.querySelector('.mobile-menu-icon')
-    if (icon) icon.textContent = '☰'
-  }
-  const openMenu = () => {
-    navLinks.classList.add('is-open')
-    toggle!.setAttribute('aria-expanded', 'true')
-    toggle!.setAttribute('aria-label', 'Fermer le menu')
-    const icon = toggle!.querySelector('.mobile-menu-icon')
-    if (icon) icon.textContent = '×'
-  }
-
-  toggle.addEventListener('click', (event) => {
-    event.preventDefault()
-    event.stopPropagation()
-    if (window.matchMedia(MOBILE_QUERY).matches) {
-      navLinks.classList.contains('is-open') ? closeMenu() : openMenu()
-    }
-  })
-  links.forEach(link => link.addEventListener('click', closeMenu))
   return true
 }
 
@@ -137,12 +95,6 @@ function boot() {
   setupMobileMenu()
   syncMobileGalleryLinks()
 
-  const nav = document.querySelector('nav')
-  if (nav) {
-    const observer = new MutationObserver(() => setupMobileMenu())
-    observer.observe(nav, { childList:true, subtree:false })
-  }
-
   const root = document.getElementById('root')
   if (root) {
     const observer = new MutationObserver(() => {
@@ -153,10 +105,6 @@ function boot() {
   }
 
   window.addEventListener('resize', () => {
-    if (!window.matchMedia(MOBILE_QUERY).matches) {
-      const panel = document.querySelector<HTMLElement>('.mobile-nav-panel')
-      panel?.classList.remove('is-open')
-    }
     syncMobileGalleryLinks()
   })
 }
