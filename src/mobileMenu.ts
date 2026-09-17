@@ -25,33 +25,15 @@ function addResponsiveStyles() {
       #projets .proj-cat,#projets .proj-year { display:none !important; }
       #apropos > div { grid-template-columns:1fr !important; gap:3rem !important; }
       #hero > div { grid-template-columns:1fr !important; gap:2rem !important; }
-
-      /* Gallery: tiny fixed strip. The space exists before any image data arrives. */
       .proj-expanded.has-mobile-gallery > div:first-child > div:first-child { display:none !important; }
       .proj-expanded > div:first-child { display:block !important; min-width:0 !important; }
       .proj-expanded > div:first-child > div:last-child { width:100% !important; min-width:0 !important; }
-      .proj-expanded .project-gallery-mobile-row {
-        display:flex !important; flex-direction:row !important; flex-wrap:nowrap !important; align-items:center !important;
-        gap:3px !important; width:100% !important; max-width:100% !important; min-width:0 !important;
-        height:50px !important; min-height:50px !important; flex:none !important;
-        overflow-x:auto !important; overflow-y:hidden !important; padding:0 2px 3px !important;
-        box-sizing:border-box !important; scrollbar-width:none !important; -webkit-overflow-scrolling:touch !important;
-        overflow-anchor:none !important; contain:layout paint !important;
-      }
+      .proj-expanded .project-gallery-mobile-row { display:flex !important; flex-direction:row !important; flex-wrap:nowrap !important; align-items:center !important; gap:3px !important; width:100% !important; max-width:100% !important; min-width:0 !important; height:50px !important; min-height:50px !important; flex:none !important; overflow-x:auto !important; overflow-y:hidden !important; padding:0 2px 3px !important; box-sizing:border-box !important; scrollbar-width:none !important; -webkit-overflow-scrolling:touch !important; overflow-anchor:none !important; contain:layout paint !important; }
       .proj-expanded .project-gallery-mobile-row::-webkit-scrollbar { display:none !important; }
-      .proj-expanded .project-gallery-mobile-row > a {
-        display:block !important; flex:0 0 46px !important; width:46px !important; min-width:46px !important; max-width:46px !important;
-        height:46px !important; min-height:46px !important; margin:0 !important; padding:0 !important; overflow:hidden !important;
-        box-sizing:border-box !important; background:rgba(0,0,0,.045) !important; border:0 !important;
-      }
-      .proj-expanded .project-gallery-mobile-row > a img {
-        display:block !important; width:46px !important; height:46px !important; min-width:46px !important; max-width:46px !important;
-        min-height:46px !important; max-height:46px !important; object-fit:cover !important; object-position:center !important;
-      }
+      .proj-expanded .project-gallery-mobile-row > a { display:block !important; flex:0 0 46px !important; width:46px !important; min-width:46px !important; max-width:46px !important; height:46px !important; min-height:46px !important; margin:0 !important; padding:0 !important; overflow:hidden !important; box-sizing:border-box !important; background:rgba(0,0,0,.045) !important; border:0 !important; }
+      .proj-expanded .project-gallery-mobile-row > a img { display:block !important; width:46px !important; height:46px !important; min-width:46px !important; max-width:46px !important; min-height:46px !important; max-height:46px !important; object-fit:cover !important; object-position:center !important; }
       .project-gallery-auto { border-top:2px solid var(--ink); overflow:hidden !important; }
       .project-gallery-auto > div:first-child { padding:.35rem .65rem !important; }
-
-      /* Projects without a gallery keep a stable thumbnail box. */
       .proj-expanded:not(.has-mobile-gallery) > div:first-child > div:first-child { width:100% !important; min-height:220px !important; aspect-ratio:4/3 !important; overflow:hidden !important; }
       .proj-expanded:not(.has-mobile-gallery) > div:first-child > div:first-child img { width:100% !important; height:100% !important; display:block !important; object-fit:cover !important; }
     }
@@ -81,7 +63,7 @@ function optimizedMobileImageUrl(source: string) {
     const url = new URL(source, window.location.href)
     if (url.origin !== window.location.origin) return null
     const path = url.pathname + url.search
-    return `/.netlify/images?url=${encodeURIComponent(path)}&w=96&h=96&fit=cover&fm=webp&q=55`
+    return `/.netlify/images?url=${encodeURIComponent(path)}&w=64&h=64&fit=cover&fm=webp&q=45`
   } catch {
     return null
   }
@@ -97,6 +79,8 @@ function optimizeGalleryImages(gallery: HTMLElement) {
     img.loading = 'eager'
     img.decoding = 'async'
     img.fetchPriority = 'high'
+    img.width = 46
+    img.height = 46
     const tiny = optimizedMobileImageUrl(original)
     if (!tiny) return
     img.onerror = () => {
@@ -140,9 +124,9 @@ function cleanupDesktop() {
 function setupMobileMenu() {
   const nav = document.querySelector('nav')
   if (!nav) return false
-  const navLinks = nav.children[1]
-  if (!(navLinks instanceof HTMLElement)) return false
-  const links = Array.from(navLinks.querySelectorAll<HTMLAnchorElement>('a'))
+  const navLinks = nav.querySelector<HTMLElement>('div:nth-child(2)')
+  if (!navLinks) return false
+  const links = Array.from(navLinks.querySelectorAll<HTMLAnchorElement>('a[href^="#"]'))
   if (!links.length) return false
 
   navLinks.classList.add('mobile-nav-panel')
@@ -160,25 +144,9 @@ function setupMobileMenu() {
   }
   if (toggle.dataset.mobileMenuReady === 'true') return true
   toggle.dataset.mobileMenuReady = 'true'
-
-  const closeMenu = () => {
-    navLinks.classList.remove('is-open')
-    toggle!.setAttribute('aria-expanded','false')
-    toggle!.setAttribute('aria-label','Ouvrir le menu')
-    const icon = toggle!.querySelector('.mobile-menu-icon')
-    if (icon) icon.textContent = '☰'
-  }
-  const openMenu = () => {
-    navLinks.classList.add('is-open')
-    toggle!.setAttribute('aria-expanded','true')
-    toggle!.setAttribute('aria-label','Fermer le menu')
-    const icon = toggle!.querySelector('.mobile-menu-icon')
-    if (icon) icon.textContent = '×'
-  }
-  toggle.addEventListener('click', (event) => {
-    event.preventDefault(); event.stopPropagation()
-    if (window.matchMedia(MOBILE_QUERY).matches) navLinks.classList.contains('is-open') ? closeMenu() : openMenu()
-  })
+  const closeMenu = () => { navLinks.classList.remove('is-open'); toggle!.setAttribute('aria-expanded','false'); toggle!.setAttribute('aria-label','Ouvrir le menu'); const icon = toggle!.querySelector('.mobile-menu-icon'); if (icon) icon.textContent = '☰' }
+  const openMenu = () => { navLinks.classList.add('is-open'); toggle!.setAttribute('aria-expanded','true'); toggle!.setAttribute('aria-label','Fermer le menu'); const icon = toggle!.querySelector('.mobile-menu-icon'); if (icon) icon.textContent = '×' }
+  toggle.addEventListener('click', (event) => { event.preventDefault(); event.stopPropagation(); if (window.matchMedia(MOBILE_QUERY).matches) navLinks.classList.contains('is-open') ? closeMenu() : openMenu() })
   links.forEach((link) => link.addEventListener('click', closeMenu))
   document.addEventListener('click', (event) => { if (window.matchMedia(MOBILE_QUERY).matches && !nav.contains(event.target as Node)) closeMenu() })
   document.addEventListener('keydown', (event) => { if (event.key === 'Escape') closeMenu() })
@@ -190,9 +158,11 @@ function boot() {
   addResponsiveStyles()
   syncGalleries()
   setupMobileMenu()
-
-  // React expands/collapses projects by changing the DOM. Observe only child additions/removals;
-  // image src/class changes never retrigger this observer, so there is no mutation loop.
+  const nav = document.querySelector('nav')
+  if (nav) {
+    const navObserver = new MutationObserver(() => { if (window.matchMedia(MOBILE_QUERY).matches) setupMobileMenu() })
+    navObserver.observe(nav, { childList:true, subtree:false })
+  }
   const projets = document.querySelector('#projets')
   if (projets) {
     const observer = new MutationObserver(() => syncGalleries())
