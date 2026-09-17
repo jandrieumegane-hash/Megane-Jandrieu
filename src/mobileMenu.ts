@@ -30,7 +30,9 @@ function addResponsiveStyles() {
       .proj-expanded > div:first-child > div:last-child { width:100% !important; min-width:0 !important; }
       .proj-expanded .project-gallery-mobile-row { display:grid !important; grid-template-columns:repeat(3,minmax(0,1fr)) !important; grid-auto-rows:46px !important; gap:3px !important; width:100% !important; max-width:100% !important; min-width:0 !important; height:auto !important; max-height:99px !important; overflow:hidden !important; padding:0 2px 2px !important; box-sizing:border-box !important; contain:layout paint !important; }
       .proj-expanded .project-gallery-mobile-row > a { display:block !important; width:100% !important; height:46px !important; min-height:46px !important; overflow:hidden !important; margin:0 !important; padding:0 !important; box-sizing:border-box !important; background:rgba(0,0,0,.045) !important; }
-      .proj-expanded .project-gallery-mobile-row > a img { display:block !important; width:100% !important; height:46px !important; min-height:46px !important; object-fit:cover !important; object-position:center !important; }
+      .proj-expanded .project-gallery-mobile-row > a img,
+      .proj-expanded .project-gallery-mobile-row > a picture,
+      .proj-expanded .project-gallery-mobile-row > a picture > img { display:block !important; width:100% !important; height:46px !important; min-height:46px !important; object-fit:cover !important; object-position:center !important; }
       .project-gallery-auto { border-top:2px solid var(--ink); overflow:hidden !important; }
       .project-gallery-auto > div:first-child { padding:.35rem .65rem !important; }
       .proj-expanded:not(.has-mobile-gallery) > div:first-child > div:first-child { width:100% !important; min-height:220px !important; aspect-ratio:4/3 !important; overflow:hidden !important; }
@@ -49,7 +51,9 @@ function addResponsiveStyles() {
       #projets > div:first-child h2,#projets > div:first-child h2 + span { font-size:clamp(1.5rem,7.8vw,2rem) !important; }
       .proj-expanded .project-gallery-mobile-row { grid-template-columns:repeat(3,minmax(0,1fr)) !important; grid-auto-rows:44px !important; max-height:94px !important; gap:2px !important; }
       .proj-expanded .project-gallery-mobile-row > a { height:44px !important; min-height:44px !important; }
-      .proj-expanded .project-gallery-mobile-row > a img { height:44px !important; min-height:44px !important; }
+      .proj-expanded .project-gallery-mobile-row > a img,
+      .proj-expanded .project-gallery-mobile-row > a picture,
+      .proj-expanded .project-gallery-mobile-row > a picture > img { height:44px !important; min-height:44px !important; }
     }
     @media (min-width:901px) {
       nav .mobile-menu-toggle { display:none !important; }
@@ -57,35 +61,6 @@ function addResponsiveStyles() {
     }
   `
   document.head.appendChild(style)
-}
-
-function optimizedMobileImageUrl(source: string) {
-  try {
-    const url = new URL(source, window.location.href)
-    if (url.origin !== window.location.origin) return null
-    return `/.netlify/images?url=${encodeURIComponent(url.pathname + url.search)}&w=72&h=72&fit=cover&fm=webp&q=45`
-  } catch { return null }
-}
-
-function optimizeGalleryImages(gallery: HTMLElement) {
-  gallery.querySelectorAll<HTMLImageElement>('img').forEach((img) => {
-    if (img.dataset.mobileOptimized === 'true') return
-    const original = img.getAttribute('src') || img.currentSrc || img.src
-    if (!original) return
-    const tiny = optimizedMobileImageUrl(original)
-    if (!tiny) return
-    img.dataset.mobileOriginal = original
-    img.dataset.mobileOptimized = 'true'
-    img.loading = 'eager'
-    img.decoding = 'async'
-    img.fetchPriority = 'high'
-    img.width = 72
-    img.height = 72
-    img.removeAttribute('srcset')
-    img.removeAttribute('sizes')
-    img.removeAttribute('src')
-    img.src = tiny
-  })
 }
 
 function disableHiddenProjectThumbnail(panel: HTMLElement) {
@@ -123,7 +98,6 @@ function setupGallery(panel: HTMLElement) {
   panel.classList.add('has-mobile-gallery')
   grid.classList.add('project-gallery-mobile-row')
   grid.parentElement?.classList.add('project-gallery-auto')
-  optimizeGalleryImages(grid)
 }
 
 function syncGalleries() {
