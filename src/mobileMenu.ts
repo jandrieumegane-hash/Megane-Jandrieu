@@ -28,10 +28,9 @@ function addResponsiveStyles() {
       .proj-expanded.has-mobile-gallery > div:first-child > div:first-child { display:none !important; }
       .proj-expanded > div:first-child { display:block !important; min-width:0 !important; }
       .proj-expanded > div:first-child > div:last-child { width:100% !important; min-width:0 !important; }
-      .proj-expanded .project-gallery-mobile-row { display:flex !important; flex-direction:row !important; flex-wrap:nowrap !important; align-items:center !important; gap:3px !important; width:100% !important; max-width:100% !important; min-width:0 !important; height:50px !important; min-height:50px !important; flex:none !important; overflow-x:auto !important; overflow-y:hidden !important; padding:0 2px 3px !important; box-sizing:border-box !important; scrollbar-width:none !important; -webkit-overflow-scrolling:touch !important; overflow-anchor:none !important; contain:layout paint !important; }
-      .proj-expanded .project-gallery-mobile-row::-webkit-scrollbar { display:none !important; }
-      .proj-expanded .project-gallery-mobile-row > a { display:block !important; flex:0 0 46px !important; width:46px !important; min-width:46px !important; max-width:46px !important; height:46px !important; min-height:46px !important; margin:0 !important; padding:0 !important; overflow:hidden !important; box-sizing:border-box !important; background:rgba(0,0,0,.045) !important; border:0 !important; }
-      .proj-expanded .project-gallery-mobile-row > a img { display:block !important; width:46px !important; height:46px !important; min-width:46px !important; max-width:46px !important; min-height:46px !important; max-height:46px !important; object-fit:cover !important; object-position:center !important; }
+      .proj-expanded .project-gallery-mobile-row { display:grid !important; grid-template-columns:repeat(3,minmax(0,1fr)) !important; grid-auto-rows:46px !important; gap:3px !important; width:100% !important; max-width:100% !important; min-width:0 !important; height:auto !important; max-height:99px !important; overflow:hidden !important; padding:0 2px 2px !important; box-sizing:border-box !important; contain:layout paint !important; }
+      .proj-expanded .project-gallery-mobile-row > a { display:block !important; width:100% !important; height:46px !important; min-height:46px !important; overflow:hidden !important; margin:0 !important; padding:0 !important; box-sizing:border-box !important; background:rgba(0,0,0,.045) !important; }
+      .proj-expanded .project-gallery-mobile-row > a img { display:block !important; width:100% !important; height:46px !important; min-height:46px !important; object-fit:cover !important; object-position:center !important; }
       .project-gallery-auto { border-top:2px solid var(--ink); overflow:hidden !important; }
       .project-gallery-auto > div:first-child { padding:.35rem .65rem !important; }
       .proj-expanded:not(.has-mobile-gallery) > div:first-child > div:first-child { width:100% !important; min-height:220px !important; aspect-ratio:4/3 !important; overflow:hidden !important; }
@@ -48,6 +47,9 @@ function addResponsiveStyles() {
       #projets .proj-row-header { min-height:6.25rem; padding:1rem !important; }
       #skills > div:last-child { grid-template-columns:1fr !important; }
       #projets > div:first-child h2,#projets > div:first-child h2 + span { font-size:clamp(1.5rem,7.8vw,2rem) !important; }
+      .proj-expanded .project-gallery-mobile-row { grid-template-columns:repeat(3,minmax(0,1fr)) !important; grid-auto-rows:44px !important; max-height:94px !important; gap:2px !important; }
+      .proj-expanded .project-gallery-mobile-row > a { height:44px !important; min-height:44px !important; }
+      .proj-expanded .project-gallery-mobile-row > a img { height:44px !important; min-height:44px !important; }
     }
     @media (min-width:901px) {
       nav .mobile-menu-toggle { display:none !important; }
@@ -61,7 +63,7 @@ function optimizedMobileImageUrl(source: string) {
   try {
     const url = new URL(source, window.location.href)
     if (url.origin !== window.location.origin) return null
-    return `/.netlify/images?url=${encodeURIComponent(url.pathname + url.search)}&w=64&h=64&fit=cover&fm=webp&q=45`
+    return `/.netlify/images?url=${encodeURIComponent(url.pathname + url.search)}&w=72&h=72&fit=cover&fm=webp&q=45`
   } catch { return null }
 }
 
@@ -72,17 +74,13 @@ function optimizeGalleryImages(gallery: HTMLElement) {
     if (!original) return
     const tiny = optimizedMobileImageUrl(original)
     if (!tiny) return
-
     img.dataset.mobileOriginal = original
     img.dataset.mobileOptimized = 'true'
     img.loading = 'eager'
-    img.decoding = 'sync'
+    img.decoding = 'async'
     img.fetchPriority = 'high'
-    img.width = 46
-    img.height = 46
-
-    // Remove the large React source before assigning the tiny CDN source.
-    // Never fall back to the original on mobile: the original remains the link target.
+    img.width = 72
+    img.height = 72
     img.removeAttribute('srcset')
     img.removeAttribute('sizes')
     img.removeAttribute('src')
@@ -94,7 +92,6 @@ function disableHiddenProjectThumbnail(panel: HTMLElement) {
   const thumbnail = panel.querySelector<HTMLImageElement>(':scope > div:first-child > div:first-child img')
   if (!thumbnail || panel.classList.contains('has-mobile-gallery')) return
   if (thumbnail.dataset.mobileThumbnailOptimized === 'true') return
-
   const original = thumbnail.getAttribute('src') || thumbnail.currentSrc || thumbnail.src
   if (!original) return
   thumbnail.dataset.mobileOriginal = original
@@ -104,11 +101,8 @@ function disableHiddenProjectThumbnail(panel: HTMLElement) {
   thumbnail.loading = 'lazy'
   thumbnail.width = 360
   thumbnail.height = 270
-
   const tiny = optimizedMobileImageUrl(original)
-  if (tiny) {
-    thumbnail.src = tiny
-  }
+  if (tiny) thumbnail.src = tiny
 }
 
 function getGalleryGrid(panel: HTMLElement) {
@@ -144,7 +138,6 @@ function cleanupDesktop() {
     img.removeAttribute('data-mobile-original')
     img.removeAttribute('data-mobile-optimized')
     img.removeAttribute('data-mobile-thumbnail-optimized')
-    img.removeAttribute('data-mobile-fallback')
   })
   document.querySelectorAll<HTMLElement>('.project-gallery-mobile-row').forEach((el) => el.classList.remove('project-gallery-mobile-row'))
   document.querySelectorAll<HTMLElement>('.has-mobile-gallery').forEach((el) => el.classList.remove('has-mobile-gallery'))
@@ -156,7 +149,7 @@ function setupMobileMenu() {
   if (!nav) return false
   const navLinks = Array.from(nav.children).find((child) => {
     if (!(child instanceof HTMLElement)) return false
-    if (child.classList.contains('mobile-menu-toggle')) return false
+    if (child.classList.contains('nav-logo') || child.classList.contains('mobile-menu-toggle')) return false
     return child.querySelectorAll('a[href^="#"]').length > 0
   }) as HTMLElement | undefined
   if (!navLinks) return false
@@ -177,9 +170,9 @@ function setupMobileMenu() {
   }
   if (toggle.dataset.mobileMenuReady === 'true') return true
   toggle.dataset.mobileMenuReady = 'true'
-  const closeMenu = () => { navLinks.classList.remove('is-open'); toggle!.setAttribute('aria-expanded','false'); toggle!.setAttribute('aria-label','Ouvrir le menu'); const icon = toggle!.querySelector('.mobile-menu-icon'); if (icon) icon.textContent = '☰' }
-  const openMenu = () => { navLinks.classList.add('is-open'); toggle!.setAttribute('aria-expanded','true'); toggle!.setAttribute('aria-label','Fermer le menu'); const icon = toggle!.querySelector('.mobile-menu-icon'); if (icon) icon.textContent = '×' }
-  toggle.addEventListener('click', (event) => { event.preventDefault(); event.stopPropagation(); if (window.matchMedia(MOBILE_QUERY).matches) navLinks.classList.contains('is-open') ? closeMenu() : openMenu() })
+  const closeMenu = () => { navLinks!.classList.remove('is-open'); toggle!.setAttribute('aria-expanded','false'); toggle!.setAttribute('aria-label','Ouvrir le menu'); const icon = toggle!.querySelector('.mobile-menu-icon'); if (icon) icon.textContent = '☰' }
+  const openMenu = () => { navLinks!.classList.add('is-open'); toggle!.setAttribute('aria-expanded','true'); toggle!.setAttribute('aria-label','Fermer le menu'); const icon = toggle!.querySelector('.mobile-menu-icon'); if (icon) icon.textContent = '×' }
+  toggle.addEventListener('click', (event) => { event.preventDefault(); event.stopPropagation(); if (window.matchMedia(MOBILE_QUERY).matches) navLinks!.classList.contains('is-open') ? closeMenu() : openMenu() })
   links.forEach((link) => link.addEventListener('click', closeMenu))
   return true
 }
