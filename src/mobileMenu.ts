@@ -77,9 +77,8 @@ function addResponsiveStyles() {
 function setupMobileMenu() {
   const nav = document.querySelector('nav')
   if (!nav) return false
-  const navLinks = nav.children[1]
-  if (!(navLinks instanceof HTMLElement)) return false
-  navLinks.classList.add('mobile-nav-panel')
+  const navLinks = nav.querySelector<HTMLElement>('.mobile-nav-panel')
+  if (!navLinks) return false
   navLinks.id = 'mobile-navigation'
   return true
 }
