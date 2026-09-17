@@ -76,11 +76,25 @@ function addResponsiveStyles() {
       nav .mobile-nav-panel { display:none !important; }
     }
 
-    /* Project galleries: every image is displayed in a true square tile. */
+    /* Project details: keep the content, remove the duplicated thumbnail. */
+    .proj-expanded > div:first-child {
+      display: block !important;
+    }
+    .proj-expanded > div:first-child > div:first-child {
+      display: none !important;
+    }
+    .proj-expanded > div:first-child > div:last-child {
+      width: 100% !important;
+      min-width: 0 !important;
+    }
+
+    /* Project galleries: square images displayed in a single horizontal sequence. */
     .project-gallery-square-item {
       display: block !important;
       aspect-ratio: 1 / 1 !important;
       overflow: hidden !important;
+      flex: 0 0 clamp(180px, 24vw, 300px) !important;
+      width: clamp(180px, 24vw, 300px) !important;
     }
     .project-gallery-square-item img {
       width: 100% !important;
@@ -92,10 +106,14 @@ function addResponsiveStyles() {
       border-top: 2px solid var(--ink);
     }
     .project-gallery-auto-grid {
-      display: grid !important;
-      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)) !important;
+      display: flex !important;
+      flex-wrap: nowrap !important;
+      overflow-x: auto !important;
+      overflow-y: hidden !important;
       gap: 2px !important;
       padding: 0 2px 2px !important;
+      -webkit-overflow-scrolling: touch !important;
+      scrollbar-width: thin !important;
     }
   `
   document.head.appendChild(style)
