@@ -808,11 +808,23 @@ function ProjectRow({ project, index }: { project: Project; index: number }) {
                 <span style={{ fontFamily: 'var(--font-body)', fontSize: '0.55rem', fontWeight: 800, letterSpacing: '0.15em', textTransform: 'uppercase', color: project.color }}>{t('gallery_label')}</span>
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: '2px', padding: '0 2px 2px' }}>
-                {project.gallery.map((imgUrl, i) => (
-                  <a key={i} href={imgUrl} target="_blank" rel="noopener noreferrer" className="clickable" style={{ display: 'block', aspectRatio: '4/3', overflow: 'hidden' }}>
-                    <img src={imgUrl} alt={`${project.title} ${i + 1}`} style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.3s' }} className="tag-hover" />
-                  </a>
-                ))}
+                {project.gallery.map((imgUrl, i) => {
+                  const mobileSrc = imgUrl.startsWith('/') && !imgUrl.startsWith('//')
+                    ? `/.netlify/images?url=${encodeURIComponent(imgUrl)}&w=72&h=72&fit=cover&fm=webp&q=45`
+                    : undefined
+                  return (
+                    <a key={i} href={imgUrl} target="_blank" rel="noopener noreferrer" className="clickable" style={{ display: 'block', aspectRatio: '4/3', overflow: 'hidden' }}>
+                      {mobileSrc ? (
+                        <picture>
+                          <source media="(max-width: 900px)" srcSet={mobileSrc} />
+                          <img src={imgUrl} alt={`${project.title} ${i + 1}`} style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.3s' }} className="tag-hover" loading="eager" decoding="async" fetchPriority="high" />
+                        </picture>
+                      ) : (
+                        <img src={imgUrl} alt={`${project.title} ${i + 1}`} style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.3s' }} className="tag-hover" />
+                      )}
+                    </a>
+                  )
+                })}
               </div>
             </div>
           )}
