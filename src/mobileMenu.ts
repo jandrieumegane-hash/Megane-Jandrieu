@@ -75,8 +75,114 @@ function addResponsiveStyles() {
       nav .mobile-menu-toggle { display:none !important; }
       nav .mobile-nav-panel { display:none !important; }
     }
+
+    /* Project galleries: every image is displayed in a true square tile. */
+    .project-gallery-square-item {
+      display: block !important;
+      aspect-ratio: 1 / 1 !important;
+      overflow: hidden !important;
+    }
+    .project-gallery-square-item img {
+      width: 100% !important;
+      height: 100% !important;
+      object-fit: cover !important;
+      display: block !important;
+    }
+    .project-gallery-auto {
+      border-top: 2px solid var(--ink);
+    }
+    .project-gallery-auto-grid {
+      display: grid !important;
+      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)) !important;
+      gap: 2px !important;
+      padding: 0 2px 2px !important;
+    }
   `
   document.head.appendChild(style)
+}
+
+function makeSquare(link: HTMLAnchorElement) {
+  link.classList.add('project-gallery-square-item')
+  link.style.aspectRatio = '1 / 1'
+  const image = link.querySelector('img')
+  if (image) {
+    image.style.width = '100%'
+    image.style.height = '100%'
+    image.style.objectFit = 'cover'
+    image.style.display = 'block'
+  }
+}
+
+function getProjectThumbnail(panel: HTMLElement): HTMLImageElement | null {
+  const top = panel.firstElementChild
+  if (!(top instanceof HTMLElement)) return null
+  const topLeft = top.firstElementChild
+  if (!(topLeft instanceof HTMLElement)) return null
+  return topLeft.querySelector('img')
+}
+
+function getGalleryGrid(panel: HTMLElement): HTMLElement | null {
+  const candidates = Array.from(panel.children).filter((child) => {
+    return child instanceof HTMLElement && child.querySelectorAll('img').length > 1
+  }) as HTMLElement[]
+  if (!candidates.length) return null
+  return candidates[candidates.length - 1]
+}
+
+function createGallery(panel: HTMLElement, thumbnail: HTMLImageElement): HTMLElement {
+  const section = document.createElement('div')
+  section.className = 'project-gallery-auto'
+
+  const header = document.createElement('div')
+  header.style.cssText = 'padding:.75rem 1.25rem;display:flex;align-items:center;gap:.5rem;'
+  header.innerHTML = '<span style="display:inline-block;width:1.5rem;height:2px;background:var(--ink)"></span><span style="font-family:var(--font-body);font-size:.55rem;font-weight:800;letter-spacing:.15em;text-transform:uppercase;color:var(--ink)">Galerie du projet</span>'
+
+  const grid = document.createElement('div')
+  grid.className = 'project-gallery-auto-grid'
+  section.appendChild(header)
+  section.appendChild(grid)
+  panel.appendChild(section)
+  return section
+}
+
+function ensureProjectGalleries() {
+  const panels = document.querySelectorAll<HTMLElement>('#projets .proj-expanded')
+
+  panels.forEach((panel) => {
+    const thumbnail = getProjectThumbnail(panel)
+    if (!thumbnail || !thumbnail.src) return
+
+    let gallery = getGalleryGrid(panel)
+    if (!gallery) gallery = createGallery(panel, thumbnail).querySelector('.project-gallery-auto-grid') as HTMLElement
+    if (!gallery) return
+
+    gallery.classList.add('project-gallery-auto-grid')
+
+    const existingLinks = Array.from(gallery.querySelectorAll<HTMLAnchorElement>('a'))
+    existingLinks.forEach(makeSquare)
+
+    const alreadyContainsThumbnail = existingLinks.some((link) => {
+      const image = link.querySelector('img')
+      return image?.src === thumbnail.src
+    })
+
+    if (!alreadyContainsThumbnail) {
+      const link = document.createElement('a')
+      link.href = thumbnail.src
+      link.target = '_blank'
+      link.rel = 'noopener noreferrer'
+      link.className = 'clickable project-gallery-square-item'
+
+      const image = document.createElement('img')
+      image.src = thumbnail.src
+      image.alt = thumbnail.alt || 'Projet'
+      image.className = 'tag-hover'
+      link.appendChild(image)
+
+      gallery.insertBefore(link, gallery.firstChild)
+      makeSquare(link)
+    }
+  })
 }
 
 function setupMobileMenu() {
@@ -149,6 +255,10 @@ function setupMobileMenu() {
 }
 
 function bootMobileMenu() {
+  const galleryObserver = new MutationObserver(() => ensureProjectGalleries())
+  galleryObserver.observe(document.body, { childList: true, subtree: true })
+  ensureProjectGalleries()
+
   if (setupMobileMenu()) return
 
   const observer = new MutationObserver(() => {
