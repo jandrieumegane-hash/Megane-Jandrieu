@@ -26,60 +26,63 @@ function addResponsiveStyles() {
       #projets .proj-cat, #projets .proj-year { display:none !important; }
       #apropos > div { grid-template-columns:1fr !important; gap:3rem !important; }
       #hero > div { grid-template-columns:1fr !important; gap:2rem !important; }
+
       .proj-expanded.has-mobile-gallery > div:first-child > div:first-child { display:none !important; }
       .proj-expanded > div:first-child { display:block !important; min-width:0 !important; }
       .proj-expanded > div:first-child > div:last-child { width:100% !important; min-width:0 !important; }
 
-      /* Reserve the exact gallery height before images decode, so loading cannot move the page. */
+      /* Tiny fixed strip: the layout exists before the network response arrives. */
       .proj-expanded .project-gallery-mobile-row {
         display:flex !important;
         flex-direction:row !important;
         flex-wrap:nowrap !important;
         align-items:flex-start !important;
-        gap:4px !important;
+        gap:3px !important;
         width:100% !important;
         max-width:100% !important;
         min-width:0 !important;
-        height:64px !important;
-        min-height:64px !important;
+        height:52px !important;
+        min-height:52px !important;
         flex:none !important;
         overflow-x:auto !important;
         overflow-y:hidden !important;
-        padding:0 2px 5px !important;
+        padding:0 2px 4px !important;
         box-sizing:border-box !important;
         -webkit-overflow-scrolling:touch !important;
         scrollbar-width:none !important;
         overflow-anchor:none !important;
-        contain:layout paint !important;
+        contain:strict !important;
       }
       .proj-expanded .project-gallery-mobile-row::-webkit-scrollbar { display:none !important; }
       .proj-expanded .project-gallery-mobile-row > a {
         display:block !important;
-        flex:0 0 64px !important;
-        width:64px !important;
-        min-width:64px !important;
-        max-width:64px !important;
-        height:64px !important;
-        min-height:64px !important;
+        flex:0 0 48px !important;
+        width:48px !important;
+        min-width:48px !important;
+        max-width:48px !important;
+        height:48px !important;
+        min-height:48px !important;
         aspect-ratio:1 / 1 !important;
         margin:0 !important;
         padding:0 !important;
         overflow:hidden !important;
         box-sizing:border-box !important;
-        background:rgba(0,0,0,.04) !important;
+        background:rgba(0,0,0,.05) !important;
       }
       .proj-expanded .project-gallery-mobile-row > a img {
         display:block !important;
-        width:64px !important;
-        height:64px !important;
-        min-width:64px !important;
-        max-width:64px !important;
-        min-height:64px !important;
-        max-height:64px !important;
+        width:48px !important;
+        height:48px !important;
+        min-width:48px !important;
+        max-width:48px !important;
+        min-height:48px !important;
+        max-height:48px !important;
         object-fit:cover !important;
+        opacity:1 !important;
       }
       .project-gallery-auto { border-top:2px solid var(--ink); overflow:hidden !important; }
-      .project-gallery-auto > div:first-child { padding:.45rem .75rem !important; }
+      .project-gallery-auto > div:first-child { padding:.35rem .65rem !important; }
+
       .proj-expanded:not(.has-mobile-gallery) > div:first-child > div:first-child {
         width:100% !important;
         min-height:220px !important;
@@ -105,9 +108,9 @@ function addResponsiveStyles() {
       #skills > div:last-child { grid-template-columns:1fr !important; }
       #projets > div:first-child h2,
       #projets > div:first-child h2 + span { font-size:clamp(1.55rem, 8vw, 2.1rem) !important; }
-      .proj-expanded .project-gallery-mobile-row { height:60px !important; min-height:60px !important; }
-      .proj-expanded .project-gallery-mobile-row > a { flex-basis:60px !important; width:60px !important; min-width:60px !important; max-width:60px !important; height:60px !important; min-height:60px !important; }
-      .proj-expanded .project-gallery-mobile-row > a img { width:60px !important; height:60px !important; min-width:60px !important; max-width:60px !important; min-height:60px !important; max-height:60px !important; }
+      .proj-expanded .project-gallery-mobile-row { height:50px !important; min-height:50px !important; }
+      .proj-expanded .project-gallery-mobile-row > a { flex-basis:46px !important; width:46px !important; min-width:46px !important; max-width:46px !important; height:46px !important; min-height:46px !important; }
+      .proj-expanded .project-gallery-mobile-row > a img { width:46px !important; height:46px !important; min-width:46px !important; max-width:46px !important; min-height:46px !important; max-height:46px !important; }
     }
     @media (min-width:901px) {
       nav .mobile-menu-toggle { display:none !important; }
@@ -118,8 +121,6 @@ function addResponsiveStyles() {
 }
 
 function getRealGalleryGrid(panel: HTMLElement): HTMLElement | null {
-  // The real gallery section has a border-top and a second child containing image links.
-  // This avoids treating the main project thumbnail or external-image links as a gallery.
   const gallerySection = Array.from(panel.children).find((child) => {
     if (!(child instanceof HTMLElement)) return false
     const style = child.getAttribute('style') || ''
@@ -129,6 +130,31 @@ function getRealGalleryGrid(panel: HTMLElement): HTMLElement | null {
     return candidate.querySelectorAll('a img').length > 0
   })
   return gallerySection?.children[1] instanceof HTMLElement ? gallerySection.children[1] as HTMLElement : null
+}
+
+function optimizeForMobile(img: HTMLImageElement) {
+  if (img.dataset.mobileOptimized === 'true') return
+
+  const original = img.currentSrc || img.src
+  if (!original || original.startsWith('data:')) return
+
+  img.dataset.originalSrc = original
+  img.dataset.mobileOptimized = 'true'
+
+  try {
+    const source = new URL(original, window.location.origin)
+    if (source.origin !== window.location.origin) return
+
+    const optimized = `/.netlify/images?url=${encodeURIComponent(source.pathname)}&w=96&h=96&fit=cover&fm=webp&q=62`
+    img.onerror = () => {
+      if (img.dataset.mobileFallback === 'true') return
+      img.dataset.mobileFallback = 'true'
+      img.src = original
+    }
+    img.src = optimized
+  } catch {
+    // Keep the original source if the URL cannot be transformed.
+  }
 }
 
 function setupGalleryRow(panel: HTMLElement) {
@@ -146,6 +172,7 @@ function setupGalleryRow(panel: HTMLElement) {
     img.loading = 'eager'
     img.decoding = 'async'
     img.fetchPriority = 'high'
+    optimizeForMobile(img)
   })
 }
 
