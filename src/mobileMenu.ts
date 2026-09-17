@@ -25,11 +25,12 @@ function addResponsiveStyles() {
       .proj-expanded > div:first-child > div:first-child { display:none !important; }
       .proj-expanded > div:first-child > div:last-child { width:100% !important; min-width:0 !important; }
 
-      /* Compact mobile gallery: small square thumbnails in a single horizontal strip. */
-      .project-gallery-square-item { display:block !important; aspect-ratio:1 / 1 !important; overflow:hidden !important; flex:0 0 82px !important; width:82px !important; height:82px !important; }
+      /* Mobile gallery: one compact horizontal row, never a vertical stack. */
+      .project-gallery-auto-grid { display:flex !important; flex-direction:row !important; flex-wrap:nowrap !important; align-items:flex-start !important; width:100% !important; max-width:100% !important; overflow-x:auto !important; overflow-y:hidden !important; gap:4px !important; padding:0 2px 4px !important; box-sizing:border-box !important; -webkit-overflow-scrolling:touch !important; scrollbar-width:thin !important; }
+      .project-gallery-auto-grid > * { flex:0 0 82px !important; width:82px !important; min-width:82px !important; max-width:82px !important; }
+      .project-gallery-square-item { display:block !important; flex:0 0 82px !important; width:82px !important; min-width:82px !important; max-width:82px !important; height:82px !important; aspect-ratio:1 / 1 !important; overflow:hidden !important; }
       .project-gallery-square-item img { width:100% !important; height:100% !important; object-fit:cover !important; display:block !important; }
-      .project-gallery-auto { border-top:2px solid var(--ink); }
-      .project-gallery-auto-grid { display:flex !important; flex-wrap:nowrap !important; overflow-x:auto !important; overflow-y:hidden !important; gap:2px !important; padding:0 2px 2px !important; -webkit-overflow-scrolling:touch !important; scrollbar-width:thin !important; }
+      .project-gallery-auto { border-top:2px solid var(--ink); overflow:hidden !important; }
       .project-gallery-auto > div:first-child { padding:.45rem .75rem !important; }
     }
     @media (max-width:600px) {
@@ -42,7 +43,8 @@ function addResponsiveStyles() {
       #hero > div > div:last-child { max-width:180px !important; }
       #projets .proj-row-header { min-height:6.25rem; padding:1rem !important; }
       #skills > div:last-child { grid-template-columns:1fr !important; }
-      .project-gallery-square-item { flex-basis:72px !important; width:72px !important; height:72px !important; }
+      .project-gallery-auto-grid > * { flex-basis:72px !important; width:72px !important; min-width:72px !important; max-width:72px !important; }
+      .project-gallery-square-item { flex-basis:72px !important; width:72px !important; min-width:72px !important; max-width:72px !important; height:72px !important; }
     }
     @media (min-width:901px) {
       nav .mobile-menu-toggle { display:none !important; }
