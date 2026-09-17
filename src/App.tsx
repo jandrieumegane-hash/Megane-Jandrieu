@@ -834,6 +834,7 @@ function ProjectRow({ project, index }: { project: Project; index: number }) {
                 target="_blank"
                 rel="noopener noreferrer"
                 className="project-gallery-mobile-link clickable"
+                style={{ background: project.color, color: 'var(--bg)', borderColor: project.color }}
               >
                 <span>{lang === 'fr' ? 'Voir les images →' : 'Vedi le immagini →'}</span>
               </a>
