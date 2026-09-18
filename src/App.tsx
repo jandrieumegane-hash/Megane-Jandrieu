@@ -806,8 +806,8 @@ function ProjectRow({ project, index }: { project: Project; index: number }) {
             </div>
           </div>
 
-          {/* Video — pleine largeur */}
-          {project.video && (
+          {/* Video — desktop uniquement, sauf Oliva Caffe */}
+          {project.video && project.title !== 'Oliva Caffe' && (
             <div style={{ borderTop: '2px solid var(--ink)', padding: '1.25rem' }}>
               <span style={{ fontFamily: 'var(--font-body)', fontSize: '0.55rem', fontWeight: 800, letterSpacing: '0.15em', textTransform: 'uppercase', color: project.color, display: 'block', marginBottom: '0.75rem' }}>{t('vid_label')}</span>
               <video src={project.video} controls autoPlay muted loop playsInline style={{ width: '100%', display: 'block', border: '2px solid var(--ink)' }} />
