@@ -750,12 +750,12 @@ function ProjectRow({ project, index }: { project: Project; index: number }) {
             <div style={{ display: 'flex', flexDirection: 'column' }}>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', flex: 1 }}>
                 {([
-                  [t('label_context'), d(project.context, project.context_fr)],
-                  [t('label_obj'),     d(project.objective, project.objective_fr)],
-                  [t('label_app'),     d(project.approach, project.approach_fr)],
-                  [t('label_del'),     d(project.deliverables, project.deliverables_fr)],
-                ] as [string, string][]).map(([label, text], i) => (
-                  <div key={label} style={{
+                  [t('label_context'), d(project.context, project.context_fr), 'context'],
+                  [t('label_obj'),     d(project.objective, project.objective_fr), 'objective'],
+                  [t('label_app'),     d(project.approach, project.approach_fr), 'approach'],
+                  [t('label_del'),     d(project.deliverables, project.deliverables_fr), 'deliverables'],
+                ] as [string, string, string][]).map(([label, text, type], i) => (
+                  <div key={label} className={`proj-detail-${type}`} style={{
                     padding: '1rem 1.25rem',
                     borderBottom: i < 2 ? '1px solid var(--border)' : undefined,
                     borderRight: i % 2 === 0 ? '1px solid var(--border)' : undefined,
@@ -1664,6 +1664,11 @@ export default function App() {
           #projets { padding: 3rem 1rem; }
           #projets .proj-row-header { grid-template-columns: 2rem 1fr auto !important; gap: 0.5rem !important; }
           #projets .proj-row-header .proj-cat { display: none; }
+          #projets .proj-expanded .proj-detail-context,
+          #projets .proj-expanded .proj-detail-approach { display: none !important; }
+          #projets .proj-expanded > div:first-child > div:last-child > div:has(.proj-detail-objective),
+          #projets .proj-expanded > div:first-child > div:last-child > div:has(.proj-detail-deliverables) { border-right: 0 !important; }
+          #projets .proj-expanded > div:first-child > div:last-child > div { grid-column: 1 / -1; }
 
           /* Filter tabs: wrap */
           #projets > div:nth-child(2) button { padding: 0.4rem 0.75rem; font-size: 0.6rem; }
