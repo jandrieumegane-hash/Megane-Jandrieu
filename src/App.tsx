@@ -743,7 +743,7 @@ function ProjectRow({ project, index }: { project: Project; index: number }) {
             <div style={{ overflow: 'hidden', borderRight: '2px solid var(--ink)' }}>
               <img src={project.img} alt={project.title}
                 className={project.title === 'Altrove Magazine' ? 'altrove-project-thumbnail' : undefined}
-                style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', minHeight: '220px' }}
+                style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', minHeight: '220px', objectPosition: project.title === 'Altrove Magazine' ? 'center 10%' : undefined }}
               />
             </div>
 
@@ -1670,7 +1670,7 @@ export default function App() {
           #projets .proj-expanded > div:first-child > div:last-child > div:has(.proj-detail-objective),
           #projets .proj-expanded > div:first-child > div:last-child > div:has(.proj-detail-deliverables) { border-right: 0 !important; }
           #projets .proj-expanded > div:first-child > div:last-child > div { grid-column: 1 / -1; }
-          #projets .altrove-project-thumbnail { object-position: center 72% !important; }
+          #projets .altrove-project-thumbnail { object-position: center 0% !important; }
 
           /* Filter tabs: wrap */
           #projets > div:nth-child(2) button { padding: 0.4rem 0.75rem; font-size: 0.6rem; }
