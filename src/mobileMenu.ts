@@ -67,7 +67,8 @@ function addResponsiveStyles() {
       #projets > div:first-child h2,#projets > div:first-child h2 + span { font-size:clamp(1.5rem,7.8vw,2rem) !important; }
     }
     @media (min-width:901px) {
-      nav .mobile-menu-toggle, nav .mobile-nav-panel, .project-gallery-mobile-link { display:none !important; }
+      nav .mobile-menu-toggle, .project-gallery-mobile-link { display:none !important; }
+      nav .mobile-nav-panel { display:flex !important; position:static !important; flex-direction:row !important; gap:2rem !important; padding:0 !important; background:transparent !important; border:0 !important; box-shadow:none !important; width:auto !important; }
       .project-gallery-desktop-only { display:block !important; }
     }
   `
