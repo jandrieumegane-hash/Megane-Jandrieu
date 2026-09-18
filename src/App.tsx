@@ -921,6 +921,8 @@ function Projects() {
 function Skills() {
   const t = useT()
   const { lang } = useLang()
+  const [openSkill, setOpenSkill] = useState<number | null>(null)
+
   return (
     <>
       <TapeMarquee />
@@ -945,7 +947,8 @@ function Skills() {
           </h2>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '1.5rem' }}>
+        {/* Desktop: full cards */}
+        <div className="skills-desktop-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '1.5rem' }}>
           {SKILLS_DATA.map((skill) => (
             <div key={skill.title.it} className="skill-item neo-card clickable" style={{
               background: '#161616',
@@ -955,12 +958,8 @@ function Skills() {
               transition: 'transform 0.25s cubic-bezier(0.175,0.885,0.32,1.275), box-shadow 0.25s',
               boxShadow: `4px 4px 0 ${skill.color}40`,
             }}>
-              {/* Icon + Title */}
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem' }}>
-                <span
-                  style={{ color: skill.color, width: '1.6rem', height: '1.6rem', flexShrink: 0 }}
-                  dangerouslySetInnerHTML={{ __html: skill.icon }}
-                />
+                <span style={{ color: skill.color, width: '1.6rem', height: '1.6rem', flexShrink: 0 }} dangerouslySetInnerHTML={{ __html: skill.icon }} />
                 <h3 style={{
                   fontFamily: 'var(--font-display)', fontWeight: 900, fontSize: '1rem',
                   letterSpacing: '-0.02em', color: '#f5f2ec', lineHeight: 1.1, margin: 0,
@@ -969,7 +968,6 @@ function Skills() {
                 </h3>
               </div>
 
-              {/* Bullets */}
               <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
                 {skill.bullets[lang].map(b => (
                   <li key={b} style={{
@@ -982,7 +980,6 @@ function Skills() {
                 ))}
               </ul>
 
-              {/* Tags */}
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.35rem', marginTop: 'auto', paddingTop: '0.5rem', borderTop: '1px solid #333' }}>
                 {skill.tags.map(tag => (
                   <span key={tag} style={{
@@ -997,6 +994,77 @@ function Skills() {
               </div>
             </div>
           ))}
+        </div>
+
+        {/* Mobile: compact accordion */}
+        <div className="skills-mobile-accordion">
+          {SKILLS_DATA.map((skill, index) => {
+            const isOpen = openSkill === index
+            return (
+              <div key={skill.title.it} style={{
+                borderTop: `2px solid ${skill.color}`,
+                background: '#161616',
+              }}>
+                <button
+                  type="button"
+                  className="skills-accordion-trigger clickable"
+                  aria-expanded={isOpen}
+                  onClick={() => setOpenSkill(isOpen ? null : index)}
+                  style={{
+                    width: '100%', display: 'flex', alignItems: 'center', gap: '0.8rem',
+                    padding: '1rem 0.75rem', border: 0, background: 'transparent',
+                    color: '#f5f2ec', textAlign: 'left', cursor: 'pointer',
+                  }}
+                >
+                  <span style={{ color: skill.color, width: '1.35rem', height: '1.35rem', flexShrink: 0 }} dangerouslySetInnerHTML={{ __html: skill.icon }} />
+                  <span style={{
+                    flex: 1, fontFamily: 'var(--font-display)', fontWeight: 900,
+                    fontSize: '0.92rem', letterSpacing: '-0.02em',
+                  }}>
+                    {skill.title[lang]}
+                  </span>
+                  <span aria-hidden="true" style={{
+                    color: skill.color, fontFamily: 'var(--font-body)', fontSize: '1.35rem',
+                    fontWeight: 300, lineHeight: 1, transition: 'transform 0.2s',
+                    transform: isOpen ? 'rotate(45deg)' : 'none',
+                  }}>+</span>
+                </button>
+
+                {isOpen && (
+                  <div style={{ padding: '0 0.75rem 1rem 2.9rem' }}>
+                    <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '0.45rem' }}>
+                      {skill.bullets[lang].map(b => (
+                        <li key={b} style={{
+                          fontFamily: 'var(--font-body)', fontSize: '0.75rem', lineHeight: 1.45,
+                          color: '#aaa', display: 'flex', alignItems: 'baseline', gap: '0.4rem',
+                        }}>
+                          <span style={{ color: skill.color, fontWeight: 900, fontSize: '0.6rem', flexShrink: 0 }}>→</span>
+                          {b}
+                        </li>
+                      ))}
+                    </ul>
+
+                    <div style={{
+                      display: 'flex', flexWrap: 'wrap', gap: '0.3rem',
+                      marginTop: '0.8rem', paddingTop: '0.65rem', borderTop: '1px solid #333',
+                    }}>
+                      {skill.tags.map(tag => (
+                        <span key={tag} style={{
+                          fontFamily: 'var(--font-body)', fontSize: '0.55rem', fontWeight: 700,
+                          letterSpacing: '0.06em', textTransform: 'uppercase',
+                          background: `${skill.color}18`, color: skill.color,
+                          padding: '0.18rem 0.45rem', border: `1px solid ${skill.color}55`,
+                        }}>
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )
+          })}
+          <div style={{ borderTop: '2px solid #f5f2ec' }} />
         </div>
       </section>
     </>
@@ -1542,6 +1610,10 @@ export default function App() {
 
         /* ─── Responsive ─── */
 
+        .skills-mobile-accordion { display: none; }
+
+
+
         /* Tablet (≤900px) */
         @media (max-width: 900px) {
           /* Nav : masquer les liens, garder logo + toggle + CTA */
@@ -1598,7 +1670,8 @@ export default function App() {
 
           /* Skills */
           #skills { padding: 3rem 1rem; }
-          #skills > div:last-child { grid-template-columns: 1fr; gap: 2rem; }
+          .skills-desktop-grid { display: none !important; }
+          .skills-mobile-accordion { display: block !important; }
 
           /* About */
           #apropos { padding: 3rem 1rem; }
