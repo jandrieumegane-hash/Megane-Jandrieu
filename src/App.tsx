@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, createContext, useContext } from 'react'
 import meganePoto from './imports/c39eaca6-45ea-46f3-8079-8dbba35a957c.jpeg'
 import { type Lang, makeT, type TKey } from './i18n'
 import cvPdfFr from './imports/CV_MeganeJandrieu_FR__2_.pdf'
-import cvPdfIt from './imports/CV_-_IT.pdf'
+import cvPdfIt from './imports/CV_-_IT.pdf.pdf'
 
 import olivaLogo from './imports/Logo.png'
 import olivaMockups from './imports/Mockups.png'
