@@ -1110,7 +1110,7 @@ function About() {
             }}>
               {t('about_btn1')}
             </a>
-            <a href={cvPdf} download={cvFilename} target="_blank" rel="noopener noreferrer" className="neo-btn neo-btn-secondary clickable" style={{
+            <a href={cvPdf} download={cvFilename} className="neo-btn neo-btn-secondary clickable" style={{
               display: 'block', textAlign: 'center',
               fontFamily: 'var(--font-display)', fontSize: '0.75rem', fontWeight: 900,
               letterSpacing: '-0.02em', color: 'var(--ink)', background: 'transparent',
